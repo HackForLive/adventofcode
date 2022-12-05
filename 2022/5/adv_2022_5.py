@@ -12,6 +12,10 @@ def moveItems(stackContainer: stackcontainer.StackContainer, line: str):
     parts = line.split(' ')
     stackContainer.move_items(int(parts[3]), int(parts[5]), int(parts[1]))
 
+def moveItemsInSameOrder(stackContainer: stackcontainer.StackContainer, line: str):
+    parts = line.split(' ')
+    stackContainer.move_items_with_same_order(int(parts[3]), int(parts[5]), int(parts[1]))
+
 if __name__ == "__main__" :
     file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'input5.txt'), 'r')
     
@@ -36,7 +40,7 @@ if __name__ == "__main__" :
         line = file.readline().strip()
         if not line:
             break
-        moveItems(stackContainer, line)
+        moveItemsInSameOrder(stackContainer, line)
 
     for stack in stackContainer.stacks:
         print(stack.pop(),end ="")

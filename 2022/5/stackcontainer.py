@@ -16,3 +16,10 @@ class StackContainer:
   def move_items(self, srcStack, destStack, itemCount):
     for stack in range(0, itemCount, 1):
         self.stacks[destStack-1].append(self.stacks[srcStack-1].pop())
+  
+  def move_items_with_same_order(self, srcStack, destStack, itemCount):
+    tmp = deque()
+    for stack in range(0, itemCount, 1):
+      tmp.append(self.stacks[srcStack-1].pop())
+    while tmp:                # Loop until empty
+      self.stacks[destStack-1].append(tmp.pop())
