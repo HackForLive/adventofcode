@@ -1,31 +1,32 @@
 #include <iostream>
 #include <fstream>
 #include <set>
-#include <stack>
+#include <vector>
 
 int main() 
 {
     int counter = 1;
     char ch;
     std::set<char> f;
-    std::stack<char> st;
+    std::vector<char> vec;
     std::fstream fin("input6.txt", std::fstream::in);
     while (fin >> std::noskipws >> ch) {
-        st.push(ch);
          if(f.find(ch) != f.end()){
+              
             f.clear();
-            while(!st.empty()) {
-                char curr = st.top();
-                f.insert(curr);
-                st.pop();
-                if(curr == ch)
-                    break;
+            f.insert(ch);
+            for (auto it = vec.rbegin(); it != vec.rend(); ++it)
+            {
+                if(*it == ch) break;
+                f.insert(*it);
+
             }
          }
          else{
             f.insert(ch);
          }
-         if(f.size() == 4)
+         vec.push_back(ch);
+         if(f.size() == 14)
             break;
          counter++;
     }
