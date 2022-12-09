@@ -1,5 +1,6 @@
 import os
-from collections import deque  
+from collections import deque
+import sys
 
 # Represents a node of an n-ary tree
 class Node :
@@ -21,6 +22,10 @@ def get_result(node: Node):
 
     while q:
         curr:Node = q.pop()
+
+        if not curr.children:
+            continue
+
         unresolved = list(filter(lambda x: x.value == -1, curr.children))
         resolved = list(filter(lambda x: x.value != -1, curr.children))
 
@@ -33,6 +38,33 @@ def get_result(node: Node):
             for i in unresolved:
                 q.append(i)
     return res
+
+def get_result2(node: Node):
+    min:int      = 30000000
+    max_size:int = 70000000
+    
+    get_result(node)
+    currently_unused:int = max_size - node.value
+
+    to_free_up = min - currently_unused
+    max_found:int = max_size
+
+    q = deque()
+    q.append(node)
+
+    while q:
+        curr:Node = q.pop()
+
+        if not curr.children:
+            continue
+            
+        if curr.value < max_found and curr.value >= to_free_up:
+                max_found = curr.value
+
+        children = curr.children
+        for child in children:
+            q.append(child)
+    return max_found
 
 def get_root():
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'input7.txt')) as fp:
@@ -75,4 +107,4 @@ def get_root():
 
 if __name__ == "__main__" :
     root: Node = get_root()
-    print(get_result(root))
+    print(get_result2(root))
