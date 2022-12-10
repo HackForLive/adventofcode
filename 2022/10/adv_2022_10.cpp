@@ -53,14 +53,13 @@ int main()
 int getResult(std::queue<int>& commands){
     std::set<int> cycles = {20,60,100,140,180,220};
 
-    int cycle = 0;
+    int cycle = 1;
     int current = 1;
     int result = 0;
 
     while(!commands.empty()){
-        cycle++;
-
-        current += commands.front();
+        
+        int top = commands.front();
         commands.pop();
         
         const bool is_in = cycles.find(cycle) != cycles.end();
@@ -68,7 +67,17 @@ int getResult(std::queue<int>& commands){
         if(is_in){
             result += current * cycle;
             // cout << result << endl;
-        } 
+        }
+        cycle++;
+        current += top;
     }
     return result;
 }
+
+// noop
+// 1. start ==> begins execution, during still 1, after the first cycle, noop do nothing
+
+// addx 3
+// 1. start ==>  addx 3 begin execution, during X still 1
+// 2.       ==> during X still 1, after addx 3 finished execution, X == 4
+// 3  start == > begin execution addx/noop, during X == 4
