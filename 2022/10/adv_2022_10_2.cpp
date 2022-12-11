@@ -24,7 +24,7 @@ void print_queue(std::queue<int> q)
   std::cout << std::endl;
 }
 
-int getResult(std::queue<int>& commands);
+void printResult(std::queue<int>& commands);
 
 int main() 
 {
@@ -45,14 +45,15 @@ int main()
             commands.push(value);
         }
     }
-    
-    std::cout << getResult(commands) << std::endl;
+    printResult(commands);
+    // std::cout << getResult(commands) << std::endl;
     return 0;
 }
 
-int getResult(std::queue<int>& commands){
+void printResult(std::queue<int>& commands){
     std::set<int> cycles = {40,80,120,160,200,240};
     int position = 1;
+    char CRT[6][40];
     // 1-40
     // 41-80
     //
@@ -67,12 +68,25 @@ int getResult(std::queue<int>& commands){
         commands.pop();
 
         // during
+        if(cycle%40 == position || cycle%40 == position + 1 || cycle%40 == position + 2){
+            CRT[(int)(cycle/40)][cycle%40] = 'X';
+        }
+        else{
+            CRT[(int)(cycle/40)][cycle%40] = '.';
+        }
 
         //end
         cycle++;
         position += top;
     }
-    return 0;
+    for(int i = 0; i < 6; i++){
+        for(int j = 0; j < 40; j++){
+            cout << CRT[i][j];
+        }
+
+        cout << endl;
+
+    }
 }
 
 // noop
