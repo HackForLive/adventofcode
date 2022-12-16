@@ -29,6 +29,7 @@ void drawRockPath(vector<vector<char>>& map, vector<int>& start, vector<int>& en
 void drawRockPath(vector<vector<char>>& map, string line);
 void print2DVector(vector<vector<char>>& values);
 vector<string> split (string s, string delimiter);
+int getResult(vector<vector<char>>& map);
 
 vector<vector<char>> createMap(int n){
     
@@ -44,8 +45,8 @@ vector<vector<char>> createMap(int n){
 }
 
 void drawRockPath(vector<vector<char>>& map, vector<int>& start, vector<int>& end){
-    cout << start[0] << ' ' << start[1] << endl;
-    cout << end[0] << ' ' << end[1] << endl;
+    // cout << start[0] << ' ' << start[1] << endl;
+    // cout << end[0] << ' ' << end[1] << endl;
 
     if (start[0] == end[0]){
         for(int j = min(start[1], end[1]); j <= max(start[1], end[1]); j++){
@@ -105,17 +106,62 @@ vector<string> split (string s, string delimiter) {
 
 int main() 
 {
-    auto input = std::ifstream("inputt.txt");
+    auto input = std::ifstream("input.txt");
     
     vector<vector<char>> map = createMap(1000);
 
     for( std::string line; getline( input, line ); ){
         drawRockPath(map, line);
     }
+    
+    
+    std::cout << getResult(map) << std::endl;
     print2DVector(map);
-    // std::cout << getResult(map) << std::endl;
     return 0;
 }
+
+bool checkIfFree(vector<vector<char>>& map, const vector<int>& spot){
+    // cout << spot[0] << ' ' << spot[1] << endl;
+    if(map.size() <= spot[0] || map[0].size() <= spot[1])return false;
+
+    if(map[spot[0]][spot[1]] == '.') return true;
+    return false;
+}
+
+bool dropSand(vector<vector<char>>& map, vector<int>& start){
+    int infTime = 400;
+    int time = 0;
+    vector<vector<int>> dxy = {{1,0},{1,-1},{1,1}};
+    vector<int> last = {start[0], start[1]};
+    bool changed = false;
+    while(time < infTime){
+        time++;
+        changed = false;
+        for(const auto &d : dxy){
+            vector<int> tmp = {last[0] + d[0],last[1] + d[1]};
+            if(checkIfFree(map, tmp)){
+                last = tmp;
+                changed = true;
+                break;
+            }
+        }
+        if(!changed){
+            map[last[0]][last[1]] = 'o';
+            // print2DVector(map);
+            return true;
+        }
+    }
+    return false;
+}
+
+int getResult(vector<vector<char>>& map){
+    vector<int> start = {0, 500};
+    map[start[0]][start[1]] = '+';
+    int rest = 0;
+    while(dropSand(map, start))rest++;
+    return rest;
+}
+
 
 
 void print2DVector(vector<vector<char>>& values){
