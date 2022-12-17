@@ -200,29 +200,3 @@ vector<int> getPositionOfCharacter(vector<vector<char>>& map, char character){
     }
     return last;
 }
-
-vector<vector<bool>> getVisitedMap(vector<vector<char>>& map){
-    
-    vector<vector<bool>> visited;
-    for (int i = 0; i < map.size(); i++){
-        vector<bool> row;
-        for (int j = 0; j < map[i].size(); j++){
-            row.push_back(false);
-        }
-        visited.push_back(row);
-    }
-    return visited;
-}
-
-vector<vector<int>> getValueMap(vector<vector<char>>& map){
-    
-    vector<vector<int>> visited;
-    for (int i = 0; i < map.size(); i++){
-        vector<int> row;
-        for (int j = 0; j < map[i].size(); j++){
-            row.push_back(0);
-        }
-        visited.push_back(row);
-    }
-    return visited;
-}
