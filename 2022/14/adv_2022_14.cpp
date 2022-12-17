@@ -30,7 +30,8 @@ void drawRockPath(vector<vector<char>>& map, string line);
 void print2DVector(vector<vector<char>>& values);
 vector<string> split (string s, string delimiter);
 int getResult(vector<vector<char>>& map);
-
+int getResult2(vector<vector<char>>& map, int n);
+vector<int> getPositionOfCharacter(vector<vector<char>>& map, char character);
 vector<vector<char>> createMap(int n){
     
     vector<vector<char>> map;
@@ -107,15 +108,15 @@ vector<string> split (string s, string delimiter) {
 int main() 
 {
     auto input = std::ifstream("input.txt");
+    int n = 1000;
     
-    vector<vector<char>> map = createMap(1000);
+    vector<vector<char>> map = createMap(n);
 
     for( std::string line; getline( input, line ); ){
         drawRockPath(map, line);
     }
     
-    
-    std::cout << getResult(map) << std::endl;
+    std::cout << getResult2(map, n) << std::endl;
     print2DVector(map);
     return 0;
 }
@@ -146,7 +147,10 @@ bool dropSand(vector<vector<char>>& map, vector<int>& start){
             }
         }
         if(!changed){
-            map[last[0]][last[1]] = 'o';
+            if (map[last[0]][last[1]] == 'o'){
+                return false;
+            }
+            map[last[0]][last[1]] = 'o';    
             // print2DVector(map);
             return true;
         }
@@ -162,11 +166,22 @@ int getResult(vector<vector<char>>& map){
     return rest;
 }
 
+int getResult2(vector<vector<char>>& map, int n){
+    vector<int> start = {0, 500};
+    int lastY = getPositionOfCharacter(map, '#')[0];
+    int inftyLineY = lastY + 2;
+    drawRockPath(map, "0," + to_string(inftyLineY)+ " -> " + to_string(n) + "," + to_string(inftyLineY));
+    map[start[0]][start[1]] = '+';
+    int rest = 0;
+    while(dropSand(map, start))rest++;
+    return rest;
+}
+
 
 
 void print2DVector(vector<vector<char>>& values){
-    for (int i = 0; i < 10; i++){
-        for (int j = 480; j < 508; j++){
+    for (int i = 0; i < 13; i++){
+        for (int j = 485; j < 520; j++){
             cout << values[i][j] << ' ';
         }
         cout << endl;
@@ -174,12 +189,16 @@ void print2DVector(vector<vector<char>>& values){
 }
 
 vector<int> getPositionOfCharacter(vector<vector<char>>& map, char character){
+    vector<int> last = {-1,-1};
     for (int i = 0; i < map.size(); i++)
         for (int j = 0; j < map[i].size(); j++)
             if(map[i][j] == character)
-                return vector<int> {i , j};
+                last = vector<int> {i , j};
 
-    throw std::invalid_argument("Start character was not found.");
+    if( last[0] == -1 ){
+        throw std::invalid_argument("Start character was not found.");
+    }
+    return last;
 }
 
 vector<vector<bool>> getVisitedMap(vector<vector<char>>& map){
