@@ -1,20 +1,9 @@
 import os
 
 class Node:
-    __isProcessed: bool = None
     def __init__(self, data: int, order: int):
         self.data = data
         self.order = order
-        self.__isProcessed = False
-
-    def doProcess(self):
-        self.__isProcessed = True
-    
-    def resetProcess(self):
-        self.__isProcessed = False
-    
-    def isProcessed(self):
-        return self.__isProcessed
 
 def shuffle(numbers):
     n = len(numbers)
@@ -28,11 +17,8 @@ def shuffle(numbers):
 
 def shuffleNTimes(numbers, times: int):
     t = 0
-    n = len(numbers)
     print("----------")
     while t < times:
-        for i in range(n):
-            numbers[i].resetProcess()
         shuffle(numbers)
         t += 1
         print(list(map(lambda x: x.data, numbers)))
