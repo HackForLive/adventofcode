@@ -2,51 +2,61 @@ import os
 
 class Node:
     __isProcessed: bool = None
-    def __init__(self, data):
+    def __init__(self, data: int, order: int):
         self.data = data
+        self.order = order
         self.__isProcessed = False
 
     def doProcess(self):
         self.__isProcessed = True
     
+    def resetProcess(self):
+        self.__isProcessed = False
+    
     def isProcessed(self):
         return self.__isProcessed
+
+def shuffle(numbers):
+    n = len(numbers)
+    i = 0
+    while i < n:
+        currNode = next((x for x in numbers if x.order == i), None)
+        j = numbers.index(currNode)
+        numbers.pop(j)
+        numbers.insert((j + currNode.data)%(n-1), currNode)
+        i += 1
+
+def shuffleNTimes(numbers, times: int):
+    t = 0
+    n = len(numbers)
+    print("----------")
+    while t < times:
+        for i in range(n):
+            numbers[i].resetProcess()
+        shuffle(numbers)
+        t += 1
+        print(list(map(lambda x: x.data, numbers)))
+    print("----------")
+
 
 if __name__ == "__main__" :
 
     res: int = 0
+    dec_key: int = 811589153
+    times: int = 10
     f = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'input.txt'), 'r')
     lines = f.readlines()
 
     l = []
     n = len(lines)
     for i in range(n):
-        node = Node(int(lines[i].strip()))
+        node = Node(int(lines[i].strip()), i)
+        node.data = node.data * dec_key
         l.append(node)
 
-    i = 0
-    while i < n:
-        currNode: Node = l[i]
-        if currNode.isProcessed():
-            i += 1
-            # print('processed')
-            # print("value: %s" % (currNode.data))
-            # print(list(map(lambda x: x.data, l)))
-            continue        
-        # print('unprocessed')
-        # print('index %d' % (i))
-        # print("node value: %s" % (currNode.data))
-        l.pop(i)
-        if (i + currNode.data)%(n-1) == 0:
-            l.append(currNode)
-            # print('insert at: %d' % ((i + currNode.data)))
-            # l.insert((i + currNode.data)%n, currNode)
-        else:
-            # print('insert at: %d' % ((i + currNode.data)))
-            l.insert((i + currNode.data)%(n-1), currNode)
-        # print(list(map(lambda x: x.data, l)))
-        currNode.doProcess()
-        i = 0
+    print(list(map(lambda x: x.data, l)))
+
+    shuffleNTimes(l, times=times)
 
     start = 0
     print(list(map(lambda x: x.data, l)))
@@ -64,13 +74,4 @@ if __name__ == "__main__" :
     print(s)
     print(t)
 
-    # 10444 too high
-    # -2662
     print("res: %d" % (f+s+t))
-
-# [1, 2, -3, 4, 0, 3, -2]
-# 4
-# 4
-# -3
-# 2
-# res: 3
