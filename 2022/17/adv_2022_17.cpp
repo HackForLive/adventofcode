@@ -18,24 +18,21 @@ using namespace std;
 //
 
 void printChamber(std::vector<char>& chamber, int& chamberWidth);
-void moveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth);
-void moveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth);
-void moveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth);
-bool canMoveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth);
-bool canMoveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth);
-bool canMoveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth);
-int simulationRound(std::vector<char>& chamber, std::unordered_map<int, vector<vector<int>>>& order, 
-                    std::vector<char>& jetPattern, int& jetIndex, int& round, int& maxH);
-void fallPattern(vector<vector<int>>& pattern, std::vector<char>& chamber, char& jet, vector<int>& position, int& chamberWidth);
-int simulation(std::vector<char>& chamber, std::vector<char>& jetPattern, int& rounds);
-int getResult(vector<char>& jetPattern);
+void moveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth);
+void moveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth);
+void moveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth);
+bool canMoveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth);
+bool canMoveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth);
+bool canMoveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth);
+long simulationRound(std::vector<char>& chamber, std::unordered_map<int, vector<vector<int>>>& order, 
+                    std::vector<char>& jetPattern, int& jetIndex, long& round, long& maxH);
+void fallPattern(vector<vector<int>>& pattern, std::vector<char>& chamber, char& jet, vector<long>& position, int& chamberWidth);
+long simulation(std::vector<char>& chamber, std::vector<char>& jetPattern, long& rounds, int& chamberWidth);
+long getResult(vector<char>& jetPattern);
 
 int main() 
 {
-    auto input = std::ifstream("input.txt");
-    
-    vector<int> mins = {INT_MAX, INT_MAX};
-    vector<int> maxs = {INT_MIN, INT_MIN};
+    auto input = std::ifstream("inputt.txt");
 
     vector<char> jetPattern;
 
@@ -73,27 +70,45 @@ int main()
 
 // ##
 // ##
-int getResult(vector<char>& jetPattern){
+long getResult(vector<char>& jetPattern){
 
     int chamberWidth = 7;
-    // int rounds = 2022;
-    int rounds = 2022;
-    int row = rounds*10;
-    
-    std::vector<char> chamber(chamberWidth * row, '.');
+    long rounds =    jetPattern.size()*3;
+    // find repeating pattern
+    //
+    //round 1700
+    // maxH 2542
+
+    // round 3410
+    // maxH 5114
+
+    // round 5120
+    // maxH 7686
+
+    // diff round 1710
+    // diffH 2572
+
+    // Result
+
+    // (1000000000000-1700)/1710
+    // 584795320*2572 + 4209
+    // 1700+1100 = 2800 rounds => 4209 height
+
+    int rows = 100000000;
+    std::vector<char> chamber(chamberWidth * rows, '.');
     for(int j = 0; j < chamberWidth; j++){
         chamber[j] = '#';
     }
 
-    int res = simulation(chamber, jetPattern, rounds);
+    long res = simulation(chamber, jetPattern, rounds, chamberWidth);
 
     return res;
 }
 
-bool canMoveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth){
+bool canMoveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth){
     for( const auto &point : pattern){
-        int y = position[0] - point[0];
-        int x = point[1] + position[1];
+        long y = position[0] - point[0];
+        long x = point[1] + position[1];
         // bad <<< check only others
         if(x + 1 < chamberWidth && 
           (chamber[y*chamberWidth + x + 1] == '.' || chamber[y*chamberWidth + x + 1] == '@')){
@@ -106,7 +121,7 @@ bool canMoveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vect
     return true;
 }
 
-bool canMoveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth){
+bool canMoveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth){
     for( const auto &point : pattern){
         int y = position[0] - point[0];
         int x = point[1] + position[1];
@@ -121,7 +136,7 @@ bool canMoveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vecto
     return true;
 }
 
-bool canMoveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth){
+bool canMoveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth){
     for( const auto &point : pattern){
         int y = position[0] - point[0];
         int x = point[1] + position[1];
@@ -136,7 +151,7 @@ bool canMoveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vecto
     return true;
 }
 
-void moveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth){
+void moveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth){
     for( const auto &point : pattern){
         int y = position[0] - point[0];
         int x = point[1] + position[1];
@@ -145,7 +160,7 @@ void moveRight(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<
     }
     position[1] = position[1] + 1;
 }
-void moveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth){
+void moveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth){
     for( const auto &point : pattern){
         int y = position[0] - point[0];
         int x = point[1] + position[1];
@@ -154,7 +169,7 @@ void moveLeft(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<i
     }
     position[1] = position[1] - 1;
 }
-void moveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<int>& position, int& chamberWidth){
+void moveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<long>& position, int& chamberWidth){
     for( const auto &point : pattern){
         int y = position[0] - point[0];
         int x = point[1] + position[1];
@@ -165,7 +180,7 @@ void moveDown(vector<vector<int>>& pattern, std::vector<char>& chamber, vector<i
 }
 
 // by jet, then down
-void fallPattern(vector<vector<int>>& pattern, std::vector<char>& chamber, char& jet, vector<int>& position, int& chamberWidth){
+void fallPattern(vector<vector<int>>& pattern, std::vector<char>& chamber, char& jet, vector<long>& position, int& chamberWidth){
 
     if(jet == '>' && canMoveRight(pattern, chamber, position, chamberWidth)){
         moveRight(pattern, chamber, position, chamberWidth);
@@ -173,16 +188,13 @@ void fallPattern(vector<vector<int>>& pattern, std::vector<char>& chamber, char&
     else if(jet == '<' && canMoveLeft(pattern, chamber, position, chamberWidth)){
         moveLeft(pattern, chamber, position, chamberWidth);
     }
-    // else{
-    //     throw std::invalid_argument("Jet character was not recognized." + jet);
-    // }
 
     if(canMoveDown(pattern, chamber, position, chamberWidth)){
         moveDown(pattern, chamber, position, chamberWidth);
     }
 }
 
-int simulation(std::vector<char>& chamber, std::vector<char>& jetPattern, int& rounds){
+long simulation(std::vector<char>& chamber, std::vector<char>& jetPattern, long& rounds, int& chamberWidth){
     vector<vector<int>> first = {{0,0},{0,1},{0,2},{0,3}};
     vector<vector<int>> second = {{0,1},{1,0},{1,1},{1,2},{2,1}};
     vector<vector<int>> third = {{0,2},{1,2},{2,2},{2,1},{2,0}};
@@ -197,10 +209,10 @@ int simulation(std::vector<char>& chamber, std::vector<char>& jetPattern, int& r
     order[3] = fourth;
     order[4] = fifth;
 
-    int maxH = 0;
-    int round = 0;
+    long maxH = 0;
+    long round = 0;
     int jetIndex = 0;
-    int currentH = maxH;
+    long currentH = maxH;
 
     while ( round < rounds ){
         currentH  = simulationRound(chamber, order, jetPattern, jetIndex, round, maxH);
@@ -208,6 +220,12 @@ int simulation(std::vector<char>& chamber, std::vector<char>& jetPattern, int& r
             maxH = currentH;
         }
         round++;
+
+        // if(maxH*chamberWidth > chamber.size()/2){
+            // https://cplusplus.com/reference/vector/vector/erase/
+        //     chamber.erase(chamber.begin(), chamber.begin() + maxH*chamberWidth);
+        //     chamber.b
+        // }
     }
 
     return maxH;
@@ -216,11 +234,11 @@ int simulation(std::vector<char>& chamber, std::vector<char>& jetPattern, int& r
 ///
 /// top left position
 ///
-vector<int> getPosition(vector<vector<int>> &pattern, int& maxH){
+vector<long> getPosition(vector<vector<int>> &pattern, long& maxH){
     int height = 3;
     
-    int minY = INT_MAX;
-    int maxY = INT_MIN;
+    long minY = LONG_MAX;
+    long maxY = LONG_MIN;
     for(const auto& point : pattern){
         if(point[0] > maxY){
             maxY = point[0];
@@ -233,54 +251,46 @@ vector<int> getPosition(vector<vector<int>> &pattern, int& maxH){
     return {maxY-minY+height+maxH+1,2};
 }
 
-void setupPattern(vector<int>& position, vector<vector<int>> &pattern, std::vector<char>& chamber, int& chamberWidth){
+void setupPattern(vector<long>& position, vector<vector<int>> &pattern, std::vector<char>& chamber, int& chamberWidth){
     for(const auto& point : pattern){
-        // int x = point[1] + position[1];
-        // int y = point[0] + position[0];
-        int x = position[1] + point[1];
-        int y = position[0] - point[0];
+        long x = position[1] + point[1];
+        long y = position[0] - point[0];
         chamber[y*chamberWidth + x] = '@';
     }
 }
 
-void finishPattern(vector<int>& position, vector<vector<int>> &pattern, std::vector<char>& chamber, int& chamberWidth){
+void finishPattern(vector<long>& position, vector<vector<int>> &pattern, std::vector<char>& chamber, int& chamberWidth){
     for(const auto& point : pattern){
-        // int x = point[1] + position[1];
-        // int y = point[0] + position[0];
-        int x = position[1] + point[1];
-        int y = position[0] - point[0];
+        long x = position[1] + point[1];
+        long y = position[0] - point[0];
         chamber[y*chamberWidth + x] = '#';
     }
 }
 
-int simulationRound(std::vector<char>& chamber, std::unordered_map<int, vector<vector<int>>>& order, 
-                    std::vector<char>& jetPattern, int& jetIndex, int& round, int& maxH){
+long simulationRound(std::vector<char>& chamber, std::unordered_map<int, vector<vector<int>>>& order, 
+                    std::vector<char>& jetPattern, int& jetIndex, long& round, long& maxH){
 
-    int currentH = 0;
+    long currentH = 0;
     int jetLen = jetPattern.size();
     int orderLen = order.size();
     int chamberWidth = 7;
 
-    vector<int> position = getPosition(order[round%orderLen], maxH);
+    vector<long> position = getPosition(order[round%orderLen], maxH);
     setupPattern(position, order[round%orderLen], chamber, chamberWidth);
     while (true) {
-        printChamber(chamber, chamberWidth);
-        cout << position[1] << ":x, " << position[0] << ":y" << endl;
         currentH = position[0];
         fallPattern(order[round%orderLen], chamber, jetPattern[jetIndex%jetLen], position, chamberWidth);
-        
-        cout << "--------------" << endl;
-        // cout << position[1] << ":x, " << position[0] << ":y" << endl;
-        cout << currentH << endl;
-        
-        // cout << jetPattern[jetIndex%jetLen] << endl;
-        cout << "--------------" << endl;
         jetIndex++;
         if(currentH == position[0]){
             finishPattern(position, order[round%orderLen], chamber, chamberWidth);
-            printChamber(chamber, chamberWidth);
-
+            // printChamber(chamber, chamberWidth);
             break;
+        }
+        if (jetIndex%jetLen==jetLen-1){
+            cout << "round: " << round << endl;
+            cout << "pattern index: " << (round%orderLen) << endl;
+            cout << "maxH: " << (maxH) << endl;
+            cout << "-----------------" << endl;
         }
     }
     if(currentH > maxH){
