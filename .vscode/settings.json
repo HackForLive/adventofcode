@@ -1,0 +1,8 @@
+{
+    "python.defaultInterpreterPath": "C:\\work\\GIT\\adventofcode\\venv\\Scripts\\python.exe",
+    "python.testing.pytestArgs": [
+        "aoc2022"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

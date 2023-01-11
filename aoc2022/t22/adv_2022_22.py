@@ -2,19 +2,22 @@ import os
 import numpy as np
 from operator import add
 from collections import deque
+import copy
 
 class Node:
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, dir: str):
         self.x = x
         self.y = y
+        self.dir = dir
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
             getattr(other, 'x', None) == self.x and
-            getattr(other, 'y', None) == self.y)
+            getattr(other, 'y', None) == self.y and
+            getattr(other, 'dir', None) == self.dir)
 
     def __hash__(self):
-        return hash(str(self.x) + str(self.y))
+        return hash(str(self.x) + str(self.y) + dir)
 
 """
 param dir:
@@ -57,13 +60,57 @@ def getDirection(dir: str):
 
     return dirs[dir]
 
-def getNodePosition(node: Node, nodes, round: int):
+def getDirecetionVal(dir: str):
+    dirs = {
+        "N": 3,
+        "S": 1,
+        "W": 2,
+        "E": 0
+    }
+
+    return dirs[dir]
+
+def getDirecetionV(node: Node, nodes, round: int):
     checkDirsOrder = {
         0: "N",
         1: "S",
         2: "W",
         3: "E",
     }
+
+def getStartPosition(mat2d):
+    for i in range(len(mat2d)):
+        for j in range(len(mat2d[0])):
+            if mat2d[i][j] == 1:
+                return  Node( x=j,y=i,dir= "E")
+    return None
+
+
+def goDir(curr:Node, steps: int, mat2d):
+    dir = getDirection(curr.dir)
+    # for i in range()
+    pass
+def turnLeft(curr:Node):
+    pass
+def turnRight(curr:Node):
+    pass
+
+
+def getResult(instructions, mat2d):
+    instrs = copy.deepcopy(instructions)
+    curr: Node = getStartPosition(mat2d=mat2d)
+    while instrs:
+        instr = instrs.pop()
+        # number
+        if isinstance(instr, int):
+            goDir(curr=curr, steps= instr, mat2d= mat2d)
+        elif instr == "R":
+            turnRight(curr=curr)
+        elif instr == "L":
+            turnLeft(curr=curr)
+        else:
+            raise ValueError("Uknown instruction: %s" % (instr))
+    return (curr.y + 1) * 1000 + (curr.x + 1) * 8 + getDirecetionVal(curr.dir)
 
 if __name__ == "__main__" :
     f = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'input.txt'), 'r')
@@ -112,8 +159,9 @@ if __name__ == "__main__" :
                 elif line[c] == '#':
                     mat2d[i][c] = 2
 
-    while instructions:
-        print(instructions.pop())
+    print(getResult(instructions, mat2d))
+    # while instructions:
+    #     print(instructions.pop())
 
-    # for i in ROW:
-    print(mat2d)
+    # # for i in ROW:
+    # print(mat2d)
