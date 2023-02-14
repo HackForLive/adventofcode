@@ -11,14 +11,12 @@ def recursive(time: int, vertex: str, visited: int):
     if dp[time][v_number[vertex]][visited] > -1:
         return dp[time][v_number[vertex]][visited]
 
-    surrs = v[vertex]
-    
     maximum: int = 0
     # flow > 0 and not visited, we can potentionally open
     if v_val[vertex] > 0 and (visited & v_bitflag[vertex]) == 0:
         maximum = max(recursive(time=time-1, vertex=vertex, visited=(visited | v_bitflag[vertex])) + v_val[vertex]*(time-1), maximum)
-    for surr in surrs:
-        maximum = max(recursive(time=time-1, vertex=surr, visited=visited), maximum)
+    for surrouding in v[vertex]:
+        maximum = max(recursive(time=time-1, vertex=surrouding, visited=visited), maximum)
 
     dp[time][v_number[vertex]][visited] = maximum
     return maximum
@@ -44,16 +42,8 @@ if __name__ == "__main__" :
     for idx, key in enumerate(v_filtered):
         v_bitflag[key] = 1 << idx
 
-    # T, V, binary
     offset = 2
-    dp = np.zeros((T_time + offset , len(v) +  offset, 2**(len(v_filtered)) + offset), dtype=np.int16)
-
-    print(f"{dp.shape[0] =} {dp.shape[1] =} {dp.shape[2] =}")
-    # initial value -1
-    for x in range(0, dp.shape[0]):
-        for y in range(0, dp.shape[1]):
-            for z in range(0, dp.shape[2]):
-                dp[x,y,z] = -1
+    dp = np.full((T_time + offset , len(v) +  offset, 2**(len(v_filtered)) + offset), -1, dtype=np.int16)
     
     res = recursive(T_time, V_start, 0)
     print(res)
