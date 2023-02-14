@@ -16,7 +16,7 @@ def recursive(time: int, vertex: str, visited: int):
     maximum: int = 0
     # flow > 0 and not visited, we can potentionally open
     if v_val[vertex] > 0 and (visited & v_bitflag[vertex]) == 0:
-        maximum = max(recursive(time=time-1, vertex=vertex, visited=(visited | v_bitflag[vertex])) + v_val[vertex]*time, maximum)
+        maximum = max(recursive(time=time-1, vertex=vertex, visited=(visited | v_bitflag[vertex])) + v_val[vertex]*(time-1), maximum)
     for surr in surrs:
         maximum = max(recursive(time=time-1, vertex=surr, visited=visited), maximum)
 
@@ -55,5 +55,5 @@ if __name__ == "__main__" :
             for z in range(0, dp.shape[2]):
                 dp[x,y,z] = -1
     
-    res = recursive(T_time-1, V_start, 0)
+    res = recursive(T_time, V_start, 0)
     print(res)
