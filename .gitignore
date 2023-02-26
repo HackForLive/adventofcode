@@ -4,3 +4,5 @@ venv/**
 
 **/aoc.egg-info/**
 **/aoc2022.egg-info/**
+
+*.exe
