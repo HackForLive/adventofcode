@@ -27,15 +27,15 @@ int DpHashSolver::get_max_geodes(int time, int ore, int clay, int obs, int ore_n
             get_max_geodes(time-1, ore, clay, obs, ore_n+ore-costs["geo"][0], clay_n+clay, obs_n+obs-costs["geo"][1]) + time - 1, 
             maximum);
     
-    if(max_values["obs_r"] > obs + 1 and  costs["obs"][0] <= ore_n and costs["obs"][1] <= clay_n)
+    if(max_values["obs_r"] > obs + 1 &&  costs["obs"][0] <= ore_n && costs["obs"][1] <= clay_n)
         maximum = max(
             get_max_geodes(time-1, ore, clay, obs+1, ore_n+ore-costs["obs"][0], clay_n+clay-costs["obs"][1], obs_n+obs), 
             maximum);
-    if (max_values["clay_r"] > clay + 1 and costs["clay"][0] <= ore_n)
+    if (max_values["clay_r"] > clay + 1 && costs["clay"][0] <= ore_n)
         maximum = max(
             get_max_geodes(time-1, ore, clay+1, obs, ore_n+ore-costs["clay"][0], clay_n+clay, obs_n+obs), maximum);
     
-    if (max_values["ore_r"] > ore + 1 and costs["ore"][0] <= ore_n)
+    if (max_values["ore_r"] > ore + 1 && costs["ore"][0] <= ore_n)
         maximum = max(
             get_max_geodes(time-1, ore+1, clay, obs, ore_n+ore-costs["ore"][0], clay_n+clay, obs_n+obs), maximum);
         

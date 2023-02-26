@@ -97,7 +97,13 @@ int main()
 }
 
 int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>& max_values){
-    cout << "ha" << endl;
+
+    // int dp[max_values["time"]][max_values["ore_r"]][max_values["clay_r"]][max_values["obs_r"]][max_values["ore_c"]][max_values["clay_c"]][max_values["obs_c"]];
+
+    // // fill -1
+    // std::fill(&dp[0][0][0][0][0][0][0],&dp[0][0][0][0][0][0][0] + sizeof(dp) / sizeof(dp[0][0][0][0][0][0][0]),-1);
+    // return 1;
+    // cout << "ha" << endl;
     vector<vector<vector<vector<vector<vector<vector<int>>>>>>> f;
     f = vector<vector<vector<vector<vector<vector<vector<int>>>>>>>
     (max_values["time"], vector<vector<vector<vector<vector<vector<int>>>>>>
@@ -108,17 +114,21 @@ int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>
     (max_values["clay_c"], vector<int>
     (max_values["obs_c"], -1)))))));
 
-    // fill -1
-    // std::fill(&dp[0][0][0][0][0][0][0],&dp[0][0][0][0][0][0][0] + sizeof(dp) / sizeof(dp[0][0][0][0][0][0][0]),-1);
-
     // C style
     // use std::vector
     // int dp[TIME + os][max_ore_r + os][max_clay_r + os][max_obs_r + os][max_ore_r*mos][max_clay_r*mos][max_obs_r*mos];
+    
+    // int*** pp;
+    // int*** dd[t][t][t];
 
-    cout << "ha1" << endl;
+    // pp = ***dd;
+
+    // cout << "ha1" << endl;
     DpSolver dp_s = DpSolver(f, costs);
-    int res = dp_s.get_max_geodes(t, 1, 0, 0, 0, 0, 0);
-    cout << "ha2" << endl;
+    int res = 0;
+    // res = dp_s.get_max_geodes(t, 1, 0, 0, 0, 0, 0);
+    res = dp_s.get_max_geodes_test(t, 1, 0, 0, 0, 0, 0);
+    // cout << "ha2" << endl;
     return res;
 }
 
