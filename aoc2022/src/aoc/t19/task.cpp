@@ -97,22 +97,21 @@ int main()
 }
 
 int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>& max_values){
-
-    // int dp[max_values["time"]][max_values["ore_r"]][max_values["clay_r"]][max_values["obs_r"]][max_values["ore_c"]][max_values["clay_c"]][max_values["obs_c"]];
-
-    // // fill -1
-    // std::fill(&dp[0][0][0][0][0][0][0],&dp[0][0][0][0][0][0][0] + sizeof(dp) / sizeof(dp[0][0][0][0][0][0][0]),-1);
-    // return 1;
     // cout << "ha" << endl;
-    vector<vector<vector<vector<vector<vector<vector<int>>>>>>> f;
-    f = vector<vector<vector<vector<vector<vector<vector<int>>>>>>>
-    (max_values["time"], vector<vector<vector<vector<vector<vector<int>>>>>>
-    (max_values["ore_r"], vector<vector<vector<vector<vector<int>>>>>
-    (max_values["clay_r"], vector<vector<vector<vector<int>>>>
-    (max_values["obs_r"], vector<vector<vector<int>>>
-    (max_values["ore_c"], vector<vector<int>>
-    (max_values["clay_c"], vector<int>
+    vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> f;
+    f = vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>>
+    (max_values["time"], vector<vector<vector<vector<vector<vector<int8_t>>>>>>
+    (max_values["ore_r"], vector<vector<vector<vector<vector<int8_t>>>>>
+    (max_values["clay_r"], vector<vector<vector<vector<int8_t>>>>
+    (max_values["obs_r"], vector<vector<vector<int8_t>>>
+    (max_values["ore_c"], vector<vector<int8_t>>
+    (max_values["clay_c"], vector<int8_t>
     (max_values["obs_c"], -1)))))));
+
+    //int dp[max_values["time"]][max_values["ore_r"]][max_values["clay_r"]][max_values["obs_r"]][max_values["ore_c"]][max_values["clay_c"]][max_values["obs_c"]]
+
+    // fill -1
+    // std::fill(&dp[0][0][0][0][0][0][0],&dp[0][0][0][0][0][0][0] + sizeof(dp) / sizeof(dp[0][0][0][0][0][0][0]),-1);
 
     // C style
     // use std::vector

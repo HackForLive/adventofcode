@@ -1,6 +1,6 @@
 #include "dp_solver.hpp"
 
-DpSolver::DpSolver(vector<vector<vector<vector<vector<vector<vector<int>>>>>>> &vec,
+DpSolver::DpSolver(vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> &vec,
     map<string, vector<int>> &costs_map){
     dp = vec;
     costs = costs_map;

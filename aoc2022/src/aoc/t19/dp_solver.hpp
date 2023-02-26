@@ -12,14 +12,14 @@ using namespace std;
 
 class DpSolver {
   private:
-    vector<vector<vector<vector<vector<vector<vector<int>>>>>>> dp;
+    vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> dp;
     map<string, vector<int>> costs;
 
   public:
-    DpSolver(vector<vector<vector<vector<vector<vector<vector<int>>>>>>> &dp,
+    DpSolver(vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> &dp,
       map<string, vector<int>> &costs);
     
-    vector<vector<vector<vector<vector<vector<vector<int>>>>>>> get_dp_table() { return dp; }
+    vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> get_dp_table() { return dp; }
 
     int get_max_geodes(int time, int ore, int clay, int obs, int ore_n, int clay_n, int obs_n);
     int get_max_geodes_test(int time, int ore, int clay, int obs, int ore_n, int clay_n, int obs_n);
