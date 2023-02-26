@@ -59,31 +59,34 @@ int DpSolver::get_max_geodes_test(int time, int ore, int clay, int obs, int ore_
     int maximum = 0;
     // try to build robot
 
-    int time_to_build = get_time_to_get_geo_robot(costs["geo"], ore_n, obs_n, ore, obs);
+    int time_to_build =  get_time_to_get_geo_robot(costs["geo"], ore_n, obs_n, ore, obs);
     if(time_to_build != -1){
         maximum = max(
             get_max_geodes(time-time_to_build, ore, clay, obs, ore_n+ore*time_to_build-costs["geo"][0], clay_n+clay*time_to_build,
             obs_n+obs*time_to_build-costs["geo"][1]) + time - time_to_build - 1, 
             maximum);
     }
-    time_to_build = get_time_to_get_obsidian_robot(costs["obs"], ore_n, clay_n, ore, clay);
-    if(dp[0][0][0].size() > obs + 1 && time_to_build != -1){
-        maximum = max(
-            get_max_geodes(time-time_to_build, ore, clay, obs+1, ore_n+time_to_build*ore-costs["obs"][0],
-            clay_n+clay*time_to_build-costs["obs"][1], obs_n+obs*time_to_build), 
-            maximum);
+    if(dp[0][0][0].size() > obs + 1){
+        time_to_build = get_time_to_get_obsidian_robot(costs["obs"], ore_n, clay_n, ore, clay);
+        if(time_to_build != -1)
+            maximum = max(
+                get_max_geodes(time-time_to_build, ore, clay, obs+1, ore_n+time_to_build*ore-costs["obs"][0],
+                clay_n+clay*time_to_build-costs["obs"][1], obs_n+obs*time_to_build), 
+                maximum);
     }
-    time_to_build = get_time_to_get_clay_robot(costs["clay"][0], ore_n, ore);
-    if (dp[0][0].size() > clay + 1 && time_to_build != -1 ){
-        maximum = max(
-            get_max_geodes(time-time_to_build, ore, clay+1, obs, ore_n+ore*time_to_build-costs["clay"][0], 
-            clay_n + clay * time_to_build, obs_n + obs * time_to_build), maximum);
+    if (dp[0][0].size() > clay + 1){
+        time_to_build = get_time_to_get_clay_robot(costs["clay"][0], ore_n, ore);
+        if(time_to_build != -1)
+            maximum = max(
+                get_max_geodes(time-time_to_build, ore, clay+1, obs, ore_n+ore*time_to_build-costs["clay"][0], 
+                clay_n + clay * time_to_build, obs_n + obs * time_to_build), maximum);
     }
-    time_to_build = get_time_to_get_ore_robot(costs["ore"][0], ore_n, ore);
     if (dp[0].size() > ore + 1 && time_to_build != -1){
-        maximum = max(get_max_geodes(
-            time-time_to_build, ore+1, clay, obs,  ore_n+ore*time_to_build-costs["ore"][0], 
-            clay_n + clay * time_to_build, obs_n + obs * time_to_build), maximum);
+        time_to_build = get_time_to_get_ore_robot(costs["ore"][0], ore_n, ore);
+        if(time_to_build != -1)
+            maximum = max(get_max_geodes(
+                time-time_to_build, ore+1, clay, obs,  ore_n+ore*time_to_build-costs["ore"][0], 
+                clay_n + clay * time_to_build, obs_n + obs * time_to_build), maximum);
     }
 
     dp[time][ore][clay][obs][ore_n][clay_n][obs_n] = maximum;
