@@ -45,7 +45,7 @@ if __name__ == "__main__" :
 
     result = 1
 
-    with open(file=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'input.txt'), mode='r', encoding="UTF8") as f:
+    with open(file=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inputt.txt'), mode='r', encoding="UTF8") as f:
         for idx, line in enumerate(f):
             # first 3
             if idx == 3:
