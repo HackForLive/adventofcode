@@ -24,7 +24,7 @@ using namespace std;
 
 int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>& max_values);
 int get_result_dp_hash_map(int t, map<string, vector<int>>& costs, map<string, int>& max_values);
-void print_how_many_values(vector<vector<vector<vector<vector<vector<vector<int>>>>>>> &f, int value);
+void print_how_many_values(vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> &f, int value);
 vector<int> getNumberFromString(string s);
 
 vector<int> getNumberFromString(string s) {
@@ -86,12 +86,10 @@ int main()
         };
 
         int res = 0;
-        res = get_result_dp_table(TIME, costs, max_values);
-        // res = get_result_dp_hash_map(TIME, costs, max_values);
+        // res = get_result_dp_table(TIME, costs, max_values);
+        res = get_result_dp_hash_map(TIME, costs, max_values);
         std::cout << res << endl;
         result = result + id * res;
-        // auto k = dp_s.get_dp_table();
-        // print_how_many_values(k, -1);
     }
      std::cout << result << endl;
 }
@@ -126,7 +124,9 @@ int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>
     DpSolver dp_s = DpSolver(f, costs);
     int res = 0;
     // res = dp_s.get_max_geodes(t, 1, 0, 0, 0, 0, 0);
-    res = dp_s.get_max_geodes_test(t, 1, 0, 0, 0, 0, 0);
+    res = dp_s.get_max_geodes(t, 1, 0, 0, 0, 0, 0);
+    // auto k = dp_s.get_dp_table();
+    // print_how_many_values(k, -1);
     // cout << "ha2" << endl;
     return res;
 }
@@ -136,9 +136,9 @@ int get_result_dp_hash_map(int t, map<string, vector<int>>& costs, map<string, i
     return dp_hash_s.get_max_geodes(t, 1, 0, 0, 0, 0, 0);
 }
 
-void print_how_many_values(vector<vector<vector<vector<vector<vector<vector<int>>>>>>> &f, int val){
-    long sum = 0;
-    long count = 0;
+void print_how_many_values(vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> &f, int val){
+    unsigned long long sum = 0;
+    unsigned long long count = 0;
     for(auto &i : f)
         for(auto &j : i)
             for(auto &k : j)
