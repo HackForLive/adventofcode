@@ -84,7 +84,7 @@ int DpHashSolver::get_max_geodes(int8_t time, int8_t ore, int8_t clay, int8_t ob
                 get_max_geodes(time-time_to_build, ore, clay+1, obs, ore_n+ore*time_to_build-costs["clay"][0], 
                 clay_n + clay * time_to_build, obs_n + obs * time_to_build), maximum);
     }
-    if (max_values["ore_r"] > ore + 1 && time_to_build != -1){
+    if (max_values["ore_r"] > ore + 1){
         time_to_build = get_time_to_get_ore_robot(costs["ore"][0], ore_n, ore);
         if(time_to_build != -1)
             maximum = max(get_max_geodes(

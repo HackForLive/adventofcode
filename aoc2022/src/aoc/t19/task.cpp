@@ -11,6 +11,7 @@
 
 #include "dp_solver.hpp"
 #include "dp_hash_solver.hpp"
+#include "item_collector.hpp"
 
 // #include <boost/algorithm/string.hpp>
 
@@ -48,7 +49,7 @@ vector<int> getNumberFromString(string s) {
 int main() 
 {
     auto input = std::ifstream(".\\aoc2022\\src\\aoc\\t19\\inputt.txt");
-    const int TIME = 24;
+    const int TIME = 32;
     int result = 0;
     
     for( std::string line; getline( input, line ); ){
@@ -63,7 +64,7 @@ int main()
         int geo2_cost = vec[6];
 
         int os = 1;
-        const int mos = 3;
+        const int mos = 4;
         int max_ore_r = max(clay_cost, max(obs_cost, geo_cost));
         int max_clay_r = obs2_cost;
         const int max_obs_r = geo2_cost;
@@ -86,8 +87,8 @@ int main()
         };
 
         int res = 0;
-        // res = get_result_dp_table(TIME, costs, max_values);
-        res = get_result_dp_hash_map(TIME, costs, max_values);
+        res = get_result_dp_table(TIME, costs, max_values);
+        //res = get_result_dp_hash_map(TIME, costs, max_values);
         std::cout << res << endl;
         result = result + id * res;
     }
@@ -95,16 +96,13 @@ int main()
 }
 
 int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>& max_values){
-    // cout << "ha" << endl;
-    vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> f;
-    f = vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>>
-    (max_values["time"], vector<vector<vector<vector<vector<vector<int8_t>>>>>>
-    (max_values["ore_r"], vector<vector<vector<vector<vector<int8_t>>>>>
-    (max_values["clay_r"], vector<vector<vector<vector<int8_t>>>>
-    (max_values["obs_r"], vector<vector<vector<int8_t>>>
-    (max_values["ore_c"], vector<vector<int8_t>>
-    (max_values["clay_c"], vector<int8_t>
-    (max_values["obs_c"], -1)))))));
+
+    vector<vector<vector<vector<ItemCollector>>>> f;
+    f = vector<vector<vector<vector<ItemCollector>>>>
+    (max_values["time"], vector<vector<vector<ItemCollector>>>
+    (max_values["ore_r"], vector<vector<ItemCollector>>
+    (max_values["clay_r"], vector<ItemCollector>
+    (max_values["obs_r"], ItemCollector(1,0,0,0)))));
 
     //int dp[max_values["time"]][max_values["ore_r"]][max_values["clay_r"]][max_values["obs_r"]][max_values["ore_c"]][max_values["clay_c"]][max_values["obs_c"]]
 
@@ -122,13 +120,11 @@ int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>
 
     // cout << "ha1" << endl;
     DpSolver dp_s = DpSolver(f, costs);
-    int res = 0;
-    // res = dp_s.get_max_geodes(t, 1, 0, 0, 0, 0, 0);
-    res = dp_s.get_max_geodes(t, 1, 0, 0, 0, 0, 0);
+    ItemCollector ic;
+    ic = dp_s.get_max_geodes(t, 1, 0, 0, ic);
     // auto k = dp_s.get_dp_table();
     // print_how_many_values(k, -1);
-    // cout << "ha2" << endl;
-    return res;
+    return ic.geo;
 }
 
 int get_result_dp_hash_map(int t, map<string, vector<int>>& costs, map<string, int>& max_values){

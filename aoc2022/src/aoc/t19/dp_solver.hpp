@@ -8,21 +8,23 @@
 #include <sstream>
 #include <cmath>
 
+#include "item_collector.hpp"
+
 using namespace std;
 
 class DpSolver {
   private:
-    vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> dp;
+    vector<vector<vector<vector<ItemCollector>>>> dp;
     map<string, vector<int>> costs;
 
   public:
-    DpSolver(vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> &dp,
+    DpSolver(vector<vector<vector<vector<ItemCollector>>>> &dp,
       map<string, vector<int>> &costs);
     
-    vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> get_dp_table() { return dp; }
+    vector<vector<vector<vector<ItemCollector>>>> get_dp_table() { return dp; }
 
     int get_max_geodes_slow(int time, int ore, int clay, int obs, int ore_n, int clay_n, int obs_n);
-    int get_max_geodes(int time, int ore, int clay, int obs, int ore_n, int clay_n, int obs_n);
+    ItemCollector get_max_geodes(short time, short ore, short clay, short obs, ItemCollector ic);
     int get_time_to_get_robot(const int& robot_cost, const int& items, const int& items_per_time_unit);
     int get_time_to_get_ore_robot(const int& ore_robot_cost, const int& ore_count, const int& ore_count_per_time_unit);
     int get_time_to_get_clay_robot(const int& clay_robot_cost, const int& ore_count, const int& ore_count_per_time_unit);

@@ -1,6 +1,7 @@
 #include "node.hpp"
 
-Node::Node(int time_l, int ore_r_l, int clay_r_l, int obs_r_l, int ore_c_l, int clay_c_l, int obs_c_l){
+Node::Node(uint8_t time_l, uint8_t ore_r_l, uint8_t clay_r_l, uint8_t obs_r_l, 
+uint8_t ore_c_l, uint8_t clay_c_l, uint8_t obs_c_l){
     time = time_l;
     ore_r = ore_r_l;
     clay_r = clay_r_l;
