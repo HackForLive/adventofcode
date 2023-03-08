@@ -25,7 +25,7 @@ using namespace std;
 
 int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>& max_values);
 int get_result_dp_hash_map(int t, map<string, vector<int>>& costs, map<string, int>& max_values);
-void print_how_many_values(vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> &f, int value);
+void print_how_many_values(vector<vector<vector<vector<ItemCollector>>>> &f, int value);
 vector<int> getNumberFromString(string s);
 
 vector<int> getNumberFromString(string s) {
@@ -48,14 +48,15 @@ vector<int> getNumberFromString(string s) {
 
 int main() 
 {
-    auto input = std::ifstream(".\\aoc2022\\src\\aoc\\t19\\inputt.txt");
+    auto input = std::ifstream("input.txt");
     const int TIME = 32;
-    int result = 0;
+    int result = 1;
     
     for( std::string line; getline( input, line ); ){
         vector<int> vec = getNumberFromString(line);
     
         int id = vec[0];
+        if (id == 4) break;
         int ore_cost = vec[1];
         int clay_cost = vec[2];
         int obs_cost = vec[3];
@@ -87,44 +88,24 @@ int main()
         };
 
         int res = 0;
-        res = get_result_dp_table(TIME, costs, max_values);
-        //res = get_result_dp_hash_map(TIME, costs, max_values);
+        // res = get_result_dp_table(TIME, costs, max_values);
+        res = get_result_dp_hash_map(TIME, costs, max_values);
         std::cout << res << endl;
-        result = result + id * res;
+        result *= res;
     }
      std::cout << result << endl;
 }
 
 int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>& max_values){
+    DpSolver dp_s = DpSolver(costs, max_values, 2);
+    int res = 0;
+    // ItemCollector ic;
+    // res = dp_s.get_max_geodes(t, 1, 0, 0, ic).geo;
 
-    vector<vector<vector<vector<ItemCollector>>>> f;
-    f = vector<vector<vector<vector<ItemCollector>>>>
-    (max_values["time"], vector<vector<vector<ItemCollector>>>
-    (max_values["ore_r"], vector<vector<ItemCollector>>
-    (max_values["clay_r"], vector<ItemCollector>
-    (max_values["obs_r"], ItemCollector(1,0,0,0)))));
-
-    //int dp[max_values["time"]][max_values["ore_r"]][max_values["clay_r"]][max_values["obs_r"]][max_values["ore_c"]][max_values["clay_c"]][max_values["obs_c"]]
-
-    // fill -1
-    // std::fill(&dp[0][0][0][0][0][0][0],&dp[0][0][0][0][0][0][0] + sizeof(dp) / sizeof(dp[0][0][0][0][0][0][0]),-1);
-
-    // C style
-    // use std::vector
-    // int dp[TIME + os][max_ore_r + os][max_clay_r + os][max_obs_r + os][max_ore_r*mos][max_clay_r*mos][max_obs_r*mos];
-    
-    // int*** pp;
-    // int*** dd[t][t][t];
-
-    // pp = ***dd;
-
-    // cout << "ha1" << endl;
-    DpSolver dp_s = DpSolver(f, costs);
-    ItemCollector ic;
-    ic = dp_s.get_max_geodes(t, 1, 0, 0, ic);
+    res = dp_s.get_max_geodes_faster(t, 1, 0, 0, 0, 0, 0);
     // auto k = dp_s.get_dp_table();
     // print_how_many_values(k, -1);
-    return ic.geo;
+    return res;
 }
 
 int get_result_dp_hash_map(int t, map<string, vector<int>>& costs, map<string, int>& max_values){
@@ -132,19 +113,19 @@ int get_result_dp_hash_map(int t, map<string, vector<int>>& costs, map<string, i
     return dp_hash_s.get_max_geodes(t, 1, 0, 0, 0, 0, 0);
 }
 
-void print_how_many_values(vector<vector<vector<vector<vector<vector<vector<int8_t>>>>>>> &f, int val){
+void print_how_many_values(vector<vector<vector<vector<ItemCollector>>>> &f, int val){
     unsigned long long sum = 0;
     unsigned long long count = 0;
-    for(auto &i : f)
-        for(auto &j : i)
-            for(auto &k : j)
-                for(auto &l : k)
+    // for(auto &i : f)
+    //     for(auto &j : i)
+    //         for(auto &k : j)
+                for(auto &l : f)
                     for(auto &m : l)
                         for(auto &n : m)
                             for(auto &o : m)
                                 for(auto &p : o){
                                     count++;
-                                    if(p == val)
+                                    if(p.ore == 1 && p.clay == 0 && p.obs == 0 && p.geo == 0 )
                                         sum++;
                                 }
     cout << "how many: " << val << " it has: " << sum  << endl;

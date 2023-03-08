@@ -5,49 +5,9 @@ DpHashSolver::DpHashSolver(map<string, vector<int>> &costs_map, map<string, int>
     max_values = max_vals;
 }
 
-int DpHashSolver::get_max_geodes_slow(int time, int ore, int clay, int obs, int ore_n, int clay_n, int obs_n){
-    // time is out
-    if ( time <= 0 || max_values["ore_c"] <= ore_n || max_values["clay_c"] <= clay_n ||
-        max_values["obs_c"] <= obs_n){
-        return 0;
-    }
-
-    auto node = Node(time, ore, clay, obs, ore_n, clay_n, obs_n);
-    
-    // cached
-    if (dp.find(node) != dp.end()){
-      return dp[node];
-    }
-    
-    int maximum = 0;
-    // try to build robot
-
-    if(costs["geo"][0] <= ore_n && costs["geo"][1] <= obs_n)
-        maximum = max(
-            get_max_geodes_slow(time-1, ore, clay, obs, ore_n+ore-costs["geo"][0], clay_n+clay, obs_n+obs-costs["geo"][1]) + time - 1, 
-            maximum);
-    
-    if(max_values["obs_r"] > obs + 1 &&  costs["obs"][0] <= ore_n && costs["obs"][1] <= clay_n)
-        maximum = max(
-            get_max_geodes_slow(time-1, ore, clay, obs+1, ore_n+ore-costs["obs"][0], clay_n+clay-costs["obs"][1], obs_n+obs), 
-            maximum);
-    if (max_values["clay_r"] > clay + 1 && costs["clay"][0] <= ore_n)
-        maximum = max(
-            get_max_geodes_slow(time-1, ore, clay+1, obs, ore_n+ore-costs["clay"][0], clay_n+clay, obs_n+obs), maximum);
-    
-    if (max_values["ore_r"] > ore + 1 && costs["ore"][0] <= ore_n)
-        maximum = max(
-            get_max_geodes_slow(time-1, ore+1, clay, obs, ore_n+ore-costs["ore"][0], clay_n+clay, obs_n+obs), maximum);
-        
-    maximum = max(get_max_geodes_slow(time-1, ore, clay, obs, ore_n+ore, clay_n+clay, obs_n+obs), maximum);
-
-    dp[node] = maximum;
-    return maximum;
-}
-
 int DpHashSolver::get_max_geodes(int8_t time, int8_t ore, int8_t clay, int8_t obs, int8_t ore_n, int8_t clay_n, int8_t obs_n){
     // time is out
-    if ( time <= 0 || max_values["ore_c"] <= ore_n || max_values["clay_c"] <= clay_n ||
+    if ( time <= 1 || max_values["ore_c"] <= ore_n || max_values["clay_c"] <= clay_n ||
         max_values["obs_c"] <= obs_n){
         return 0;
     }
@@ -128,4 +88,3 @@ int DpHashSolver::get_time_to_get_geo_robot(const vector<int>& geo_robot_cost, c
 const int& ore_count_per_time_unit, const int& obs_count_per_time_unit) {
     return get_time_to_get_obsidian_robot(geo_robot_cost, ore_count, obs_count, ore_count_per_time_unit, obs_count_per_time_unit);
 }
-
