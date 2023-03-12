@@ -101,7 +101,7 @@ void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr);
 int get_result();
 
 std::shared_ptr<grid_layout> parse_input(){
-    auto input = std::ifstream("/home/michael/git/adventofcode/aoc2022/src/aoc/day24/in.txt");
+    auto input = std::ifstream("/home/michael/git/adventofcode/aoc2022/src/aoc/day24/inn.txt");
 
     grid_layout grid_l;
     std::vector<grid_element> blizzards;
@@ -169,6 +169,9 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, std::
 
     while(!q.empty()){
         auto& current = q.front();
+        if(current.g_element.pos == grid_layout_ptr->end.pos){
+            return current.time;
+        }
         q.pop();
         if(time != current.time){
             time++;
@@ -183,7 +186,7 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, std::
             }
         }
     }
-    return time;
+    return -1;
 }
 
 bool can_move_on_grid(position& el_position, position& dir, std::shared_ptr<grid_layout> grid_layout_ptr){
