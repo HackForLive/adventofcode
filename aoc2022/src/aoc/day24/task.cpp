@@ -89,7 +89,7 @@ class grid_layout {
         grid_element end;
 
         grid_layout(){
-            std::array<std::array<short, COL>, ROW> grid;
+            std::array<std::array<int, COL>, ROW> grid;
             this->grid = std::make_shared<std::array<std::array<int, COL>, ROW>>(grid);
         };
 };
@@ -214,10 +214,10 @@ void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr){
                 blizzard.pos = position(pos.x, grid_layout_ptr->ROW-1);
             }
             else if(blizzard.dir == dir.left){
-                blizzard.pos = position(pos.x, grid_layout_ptr->COL-1);
+                blizzard.pos = position(grid_layout_ptr->COL-1, pos.y);
             }
             else if(blizzard.dir == dir.right) {
-                blizzard.pos = position(pos.x, 1);
+                blizzard.pos = position(1, pos.y);
             }
             else {
                 throw std::runtime_error("Unexpected blizzard direction!");
@@ -240,4 +240,8 @@ int get_result(){
 
     // std::cout << (*grid_layout_ptr->grid.get())[1][1] << std::endl;
     return bfs(grid_layout_ptr, player, directions);
+}
+
+int main(){
+    std::cout << get_result() << std::endl;
 }
