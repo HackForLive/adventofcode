@@ -24,6 +24,11 @@ struct position {
         this->y += a.y;
         return *this;
     }
+
+    bool operator==(const position& a) const
+    {
+        return (x == a.x && y == a.y);
+    }
 };
 
 struct direction
@@ -160,11 +165,35 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, std::
 }
 
 void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr){
+    direction dir = direction();
     for(auto& blizzard : *(grid_layout_ptr->blizzards)){
         position pos = blizzard.pos + blizzard.dir;
-        if(grid_layout_ptr.grid[pos.y][pos.x].type == -1){
-
+        (*(*grid_layout_ptr).grid)[blizzard.pos.y][blizzard.pos.x] -= 1;
+        
+        if((*(*grid_layout_ptr).grid)[pos.y][pos.x] == -1){
+            // entering wall
+            blizzard.pos = position(pos.x, pos.y);
+            
+            if(blizzard.dir == dir.down){
+                blizzard.pos = position(pos.x, 1);
+            }
+            else if(blizzard.dir == dir.up){
+                blizzard.pos = position(pos.x, grid_layout_ptr->ROW-1);
+            }
+            else if(blizzard.dir == dir.left){
+                blizzard.pos = position(pos.x, grid_layout_ptr->COL-1);
+            }
+            else if(blizzard.dir == dir.right) {
+                blizzard.pos = position(pos.x, 1);
+            }
+            else {
+                throw std::runtime_error("Unexpected blizzard direction!");
+            }
         }
+        else{
+            blizzard.pos = position(pos.x, pos.y);
+        }
+        (*(*grid_layout_ptr).grid)[blizzard.pos.y][blizzard.pos.x] += 1;
     }
 }
 
