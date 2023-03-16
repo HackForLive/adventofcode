@@ -80,8 +80,8 @@ struct grid_element_state
 
 class grid_layout {
     public:
-        const static int ROW = 22;
-        const static int COL = 152;
+        const static int ROW = 6;//22;
+        const static int COL = 8;//152;
         std::shared_ptr<std::array<std::array<int, COL>, ROW>> grid;
 
         std::shared_ptr<std::vector<grid_element>> blizzards;
@@ -99,6 +99,7 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, std::
 bool can_move_on_grid(position& el_position, position& dir, std::shared_ptr<grid_layout> grid_layout_ptr);
 void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr);
 int get_result();
+bool should_prone_grid_element_state(grid_element_state& ges, position& start);
 
 std::shared_ptr<grid_layout> parse_input(){
     auto input = std::ifstream("/home/michael/git/adventofcode/aoc2022/src/aoc/day24/inn.txt");
@@ -113,12 +114,15 @@ std::shared_ptr<grid_layout> parse_input(){
         col = 0;
 
         for(auto& c : line){
+            //  std::cout << row << std::endl;
             if(c == '.'){
                 if(row == 0){
                     ge = grid_element(grid_element_type::start, position(col, row), direction().none);
                     grid_l.start = ge;
+                    // std::cout << "start" << std::endl;
                 }
                 else if(row == grid_l.ROW-1){
+                    // std::cout << "end" << std::endl;
                     ge = grid_element(grid_element_type::end, position(col, row), direction().none);
                     grid_l.end = ge;
                 }
@@ -167,31 +171,62 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, std::
     q.push(element);
     int time = 0;
 
+    std::array<std::array<std::array<bool, 100>, 100>, 100> visited;
+
+    // std::cout << grid_layout_ptr->end.pos.x << " < x y > " << grid_layout_ptr->end.pos.y << std::endl;
+    // std::cout << grid_layout_ptr->start.pos.x << " < x y > " << grid_layout_ptr->start.pos.y << std::endl;
+    // return -1; 
+    // auto a = position(5,0);
+    // auto b = position(0,5);
+    // if(a==b){
+    //     std::cout << "true" << std::endl;
+    // }
+    // return -1;
+
     while(!q.empty()){
         auto& current = q.front();
         if(current.g_element.pos == grid_layout_ptr->end.pos){
             return current.time;
         }
         q.pop();
+        if(current.time >  9){
+            continue;
+        }
+        else{
+            std::cout << "current.time" << current.time << std::endl;
+        }
+        if(visited[current.g_element.pos.y][current.g_element.pos.x][current.time]){
+            continue;
+        }
         if(time != current.time){
             time++;
+            std::cout << "time:" << time << std::endl;
+            std::cout << "size:" << q.size() << std::endl;
             simulate_blizzards(grid_layout_ptr);
         }
 
         for(auto& dir : directions){
             grid_element ge = grid_element(current.g_element.type, current.g_element.pos + dir, dir);
-            grid_element_state ges = grid_element_state(ge, current.time + 1);
+            grid_element_state ges = grid_element_state(ge, time + 1);
             if(can_move_on_grid(ge.pos, ge.dir, grid_layout_ptr)){
                 q.push(ges);
             }
         }
+        visited[current.g_element.pos.y][current.g_element.pos.x][current.time] = true;
     }
     return -1;
 }
 
+bool should_prone_grid_element_state(grid_element_state& ges, position& start){
+    // const int magic_constant = 0;
+    // return abs(ges.g_element.pos.x - start.x) + abs(ges.g_element.pos.y - start.y) + magic_constant < ges.time;
+    // std::cout << "prone time: " << ges.time << std::endl; 
+    return ges.time > 4;
+}
+
 bool can_move_on_grid(position& el_position, position& dir, std::shared_ptr<grid_layout> grid_layout_ptr){
     position pos_res = el_position + dir;
-    if((*(*grid_layout_ptr).grid)[pos_res.y][pos_res.x] == 0){
+    if((*grid_layout_ptr->grid)[pos_res.y][pos_res.x] == 0){
         return true;
     }
     return false;
@@ -201,9 +236,9 @@ void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr){
     direction dir = direction();
     for(auto& blizzard : *(grid_layout_ptr->blizzards)){
         position pos = blizzard.pos + blizzard.dir;
-        (*(*grid_layout_ptr).grid)[blizzard.pos.y][blizzard.pos.x] -= 1;
+        // (*grid_layout_ptr->grid)[blizzard.pos.y][blizzard.pos.x]--;
         
-        if((*(*grid_layout_ptr).grid)[pos.y][pos.x] == -1){
+        if((*grid_layout_ptr->grid)[pos.y][pos.x] == -1){
             // entering wall
             blizzard.pos = position(pos.x, pos.y);
             
@@ -226,7 +261,7 @@ void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr){
         else{
             blizzard.pos = position(pos.x, pos.y);
         }
-        (*(*grid_layout_ptr).grid)[blizzard.pos.y][blizzard.pos.x] += 1;
+        // grid_layout_ptr->grid->data()[blizzard.pos.y][blizzard.pos.x] += 1;
     }
 }
 
