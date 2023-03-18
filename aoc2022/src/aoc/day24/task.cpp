@@ -18,11 +18,9 @@ struct position {
     position() : x(-1), y(-1) {};
     position(int x, int y) { this->x = x; this->y = y; };
 
-    position& operator +(const position& a)
+    position operator+(const position& a)        // passing lhs by value helps optimize chained a+b+c // otherwise, both parameters may be const references
     {
-        this->x += a.x;
-        this->y += a.y;
-        return *this;
+        return position(x + a.x, y + a.y);
     }
 
     bool operator==(const position& a) const
@@ -90,6 +88,7 @@ class grid_layout {
 
         grid_layout(){
             std::array<std::array<int, COL>, ROW> grid;
+            grid.fill({0});
             this->grid = std::make_shared<std::array<std::array<int, COL>, ROW>>(grid);
         };
 };
@@ -119,19 +118,15 @@ std::shared_ptr<grid_layout> parse_input(){
                 if(row == 0){
                     ge = grid_element(grid_element_type::start, position(col, row), direction().none);
                     grid_l.start = ge;
-                    // std::cout << "start" << std::endl;
                 }
                 else if(row == grid_l.ROW-1){
-                    // std::cout << "end" << std::endl;
                     ge = grid_element(grid_element_type::end, position(col, row), direction().none);
                     grid_l.end = ge;
                 }
                 (*grid_l.grid)[row][col] = 0;
-                ge = grid_element(grid_element_type::none, position(col, row), direction().none);
             }
             else if (c == '#') {
                 (*grid_l.grid)[row][col]=-1;
-                ge = grid_element(grid_element_type::wall, position(col, row), direction().none);
             }
             else if (c == '<'){
                 (*grid_l.grid)[row][col]+=1;
@@ -169,19 +164,10 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, std::
 
     grid_element_state element = grid_element_state(player, 1);
     q.push(element);
-    int time = 0;
+    int time = 1;
+    simulate_blizzards(grid_layout_ptr);
 
     std::array<std::array<std::array<bool, 100>, 100>, 100> visited;
-
-    // std::cout << grid_layout_ptr->end.pos.x << " < x y > " << grid_layout_ptr->end.pos.y << std::endl;
-    // std::cout << grid_layout_ptr->start.pos.x << " < x y > " << grid_layout_ptr->start.pos.y << std::endl;
-    // return -1; 
-    // auto a = position(5,0);
-    // auto b = position(0,5);
-    // if(a==b){
-    //     std::cout << "true" << std::endl;
-    // }
-    // return -1;
 
     while(!q.empty()){
         auto& current = q.front();
@@ -189,31 +175,33 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, std::
             return current.time;
         }
         q.pop();
-        if(current.time >  9){
+        if(current.time >  4){
             continue;
-        }
-        else{
-            std::cout << "current.time" << current.time << std::endl;
         }
         if(visited[current.g_element.pos.y][current.g_element.pos.x][current.time]){
             continue;
         }
         if(time != current.time){
             time++;
-            std::cout << "time:" << time << std::endl;
-            std::cout << "size:" << q.size() << std::endl;
+            // std::cout << "time:" << time << std::endl;
+            // std::cout << "size:" << q.size() << std::endl;
             simulate_blizzards(grid_layout_ptr);
         }
+        std::cout << "x:" << current.g_element.pos.x << ", y: " << current.g_element.pos.y << ", time:" <<
+         current.time << std::endl;
+
 
         for(auto& dir : directions){
             grid_element ge = grid_element(current.g_element.type, current.g_element.pos + dir, dir);
-            grid_element_state ges = grid_element_state(ge, time + 1);
+            grid_element_state ges = grid_element_state(ge, current.time + 1);
             if(can_move_on_grid(ge.pos, ge.dir, grid_layout_ptr)){
                 q.push(ges);
             }
         }
         visited[current.g_element.pos.y][current.g_element.pos.x][current.time] = true;
     }
+    std::cout << "sx:" << grid_layout_ptr->start.pos.x << ", sy: " << grid_layout_ptr->start.pos.y << std::endl;
+    std::cout << "ex:" << grid_layout_ptr->end.pos.x << ", ey: " << grid_layout_ptr->end.pos.y << std::endl;
     return -1;
 }
 
@@ -226,6 +214,10 @@ bool should_prone_grid_element_state(grid_element_state& ges, position& start){
 
 bool can_move_on_grid(position& el_position, position& dir, std::shared_ptr<grid_layout> grid_layout_ptr){
     position pos_res = el_position + dir;
+    if(pos_res.y < 0 || pos_res.x < 0 || pos_res.y >= grid_layout_ptr->ROW || pos_res.x >= grid_layout_ptr->COL){
+        return false;
+    }
+
     if((*grid_layout_ptr->grid)[pos_res.y][pos_res.x] == 0){
         return true;
     }
@@ -236,20 +228,20 @@ void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr){
     direction dir = direction();
     for(auto& blizzard : *(grid_layout_ptr->blizzards)){
         position pos = blizzard.pos + blizzard.dir;
-        // (*grid_layout_ptr->grid)[blizzard.pos.y][blizzard.pos.x]--;
+        (*grid_layout_ptr->grid)[blizzard.pos.y][blizzard.pos.x]--;
         
         if((*grid_layout_ptr->grid)[pos.y][pos.x] == -1){
             // entering wall
-            blizzard.pos = position(pos.x, pos.y);
+            // blizzard.pos = position(pos.x, pos.y);
             
             if(blizzard.dir == dir.down){
                 blizzard.pos = position(pos.x, 1);
             }
             else if(blizzard.dir == dir.up){
-                blizzard.pos = position(pos.x, grid_layout_ptr->ROW-1);
+                blizzard.pos = position(pos.x, grid_layout_ptr->ROW-2);
             }
             else if(blizzard.dir == dir.left){
-                blizzard.pos = position(grid_layout_ptr->COL-1, pos.y);
+                blizzard.pos = position(grid_layout_ptr->COL-2, pos.y);
             }
             else if(blizzard.dir == dir.right) {
                 blizzard.pos = position(1, pos.y);
@@ -261,7 +253,7 @@ void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr){
         else{
             blizzard.pos = position(pos.x, pos.y);
         }
-        // grid_layout_ptr->grid->data()[blizzard.pos.y][blizzard.pos.x] += 1;
+        (*grid_layout_ptr->grid)[blizzard.pos.y][blizzard.pos.x]++;
     }
 }
 
