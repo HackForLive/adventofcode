@@ -129,10 +129,9 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, grid_
 bool can_move_on_grid(position& el_position, position& dir, std::shared_ptr<grid_layout> grid_layout_ptr);
 void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr);
 int get_result();
-bool should_prone_grid_element_state(grid_element_state& ges, position& start);
 
 std::shared_ptr<grid_layout> parse_input(){
-    auto input = std::ifstream("/home/michael/git/adventofcode/aoc2022/src/aoc/day24/inn.txt");
+    auto input = std::ifstream("/home/michael/git/adventofcode/aoc2022/src/aoc/day24/in.txt");
 
     
     std::vector<grid_element> blizzards;
@@ -145,7 +144,6 @@ std::shared_ptr<grid_layout> parse_input(){
         col = 0;
         std::vector<int> row_v;
         for(auto& c : line){
-            //  std::cout << row << std::endl;
             if(c == '.'){
                 row_v.push_back(0);
             }
@@ -195,7 +193,6 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, grid_
     grid_element_state element = grid_element_state(player, 0);
     q.push(element);
     int time = 0;
-    simulate_blizzards(grid_layout_ptr);
 
     std::unordered_map<hash_item, bool> visited;
 
@@ -225,13 +222,6 @@ int bfs(std::shared_ptr<grid_layout> grid_layout_ptr, grid_element player, grid_
     return -1;
 }
 
-bool should_prone_grid_element_state(grid_element_state& ges, position& start){
-    // const int magic_constant = 0;
-    // return abs(ges.g_element.pos.x - start.x) + abs(ges.g_element.pos.y - start.y) + magic_constant < ges.time;
-    // std::cout << "prone time: " << ges.time << std::endl; 
-    return ges.time > 4;
-}
-
 bool can_move_on_grid(position& el_position, position& dir, std::shared_ptr<grid_layout> grid_layout_ptr){
     position pos_res = el_position + dir;
     if(pos_res.y < 0 || pos_res.x < 0 || pos_res.y >= grid_layout_ptr->row || pos_res.x >= grid_layout_ptr->col){
@@ -252,7 +242,6 @@ void simulate_blizzards(std::shared_ptr<grid_layout> grid_layout_ptr){
         
         if((grid_layout_ptr->grid)[pos.y][pos.x] == -1){
             // entering wall
-            // blizzard.pos = position(pos.x, pos.y);
             
             if(blizzard.dir == dir.down){
                 blizzard.pos = position(pos.x, 1);
@@ -285,7 +274,7 @@ int get_result(){
     direction dir = direction();
     std::vector<position> directions = {dir.right, dir.left, dir.up, dir.down, dir.none};
 
-
+    simulate_blizzards(grid_layout_ptr);
     return bfs(grid_layout_ptr, player, goal, directions);
 }
 
@@ -296,14 +285,12 @@ int get_result2(){
     direction dir = direction();
     std::vector<position> directions = {dir.right, dir.left, dir.up, dir.down, dir.none};
 
-
+    simulate_blizzards(grid_layout_ptr);
     int a = bfs(grid_layout_ptr, grid_layout_ptr.get()->start, grid_layout_ptr.get()->end, directions);
     int b = bfs(grid_layout_ptr, grid_layout_ptr.get()->end, grid_layout_ptr.get()->start, directions);
     int c = bfs(grid_layout_ptr, grid_layout_ptr.get()->start, grid_layout_ptr.get()->end, directions);
 
-    std::cout << a << " " << b << " " << c << std::endl;
     return a + b + c;
-    // 995 too low :D
 }
 
 
