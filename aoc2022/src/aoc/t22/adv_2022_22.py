@@ -85,25 +85,24 @@ def wrap_around(dir, curr: Node, mat2d):
 def wrap_around_cube(dir, curr: Node, mat2d):
     x0 = curr.x
     y0 = curr.y
+    dir0 = curr.direction
 
     if x0 < 50 and y0 == 100 and dir==get_direction("N"): # good
         curr.direction = "E"
         x = 50
         y = x0 + 50
+    elif x0 == 0 and y0 < 150 and dir==get_direction("W"): # good
+        x = 50
+        y = 149-y0
+        curr.direction = "E"
+    elif x0 == 0 and y0 > 149 and dir==get_direction("W"):  # good
+        x = y0-100
+        y = 0
+        curr.direction = "S"
     elif x0 < 50 and y0 == 199 and dir==get_direction("S"): # good
         x = x0 + 100
         y = 0
         curr.direction = "S"
-    
-    elif x0 == 0 and dir==get_direction("W"): 
-        if y0 < 150: # good
-            x = 50
-            y = 149-y0
-            curr.direction = "E"
-        elif y0 > 149: # good
-            x = y0-100
-            y = 0
-            curr.direction = "S"
     elif x0 == 49 and y0 > 149 and dir==get_direction("E"): # good
         x = (y0 - 100)
         y = 149
@@ -112,29 +111,14 @@ def wrap_around_cube(dir, curr: Node, mat2d):
         x = 49
         y = x0 + 100
         curr.direction = "W"
-    elif x0 == 99 and y0 > 49 and dir==get_direction("E"):
-        if y0 > 99: # good
-            x = 149
-            y = 149 - y0
-            curr.direction = "W"
-        else: # good
-            x = y0 + 50
-            y = 49
-            curr.direction = "N"
-
-    #   1 1
-    #   1
-    # 1 1
-    # 1
-
-      ####
-      ####
-      ##
-      ##
-    ####
-    ####
-    ##
-    ##
+    elif x0 == 99 and y0 > 99 and dir==get_direction("E"): # good
+        x = 149
+        y = 149 - y0
+        curr.direction = "W"
+    elif x0 == 99 and y0 > 49 and dir==get_direction("E"): # good
+        x = y0 + 50
+        y = 49
+        curr.direction = "N"
     elif y0 == 49 and x0 > 99 and dir==get_direction("S"):
         x = 99
         y = x0 - 50
@@ -143,53 +127,36 @@ def wrap_around_cube(dir, curr: Node, mat2d):
         x = 99
         y = 149-y0
         curr.direction = "W" # good
-    elif y0==0 and dir==get_direction("N"):
-        if x0 > 99:
-            x=x0-100
-            y=199
-            curr.direction = "N" # good 
-        else:
-            x=0
-            y=x0+100 # TODO check
-            curr.direction = "E"
+    elif y0==0 and x0 > 99 and dir==get_direction("N"):
+        x=x0-100
+        y=199
+        curr.direction = "N" # good 
+    elif y0==0 and x0 > 49 and dir==get_direction("N"):
+        x=0
+        y=x0+100 # check
+        curr.direction = "E"
+    elif x0==50 and y0 < 50 and dir==get_direction("W"):
+        x=0
+        y=149-y0
+        curr.direction = "E"
     elif x0==50 and y0 < 100 and dir==get_direction("W"):
-        if y0 < 50:
-            x=0
-            y=149-y0
-            curr.direction = "E"
-        else:
-            x=y0-50
-            y=100
-            curr.direction = "S"
+        x=y0-50
+        y=100
+        curr.direction = "S"
     
-    if mat2d[y][x] == 1:
+    if mat2d[y][x] == 1: # free place
         curr.x = x
         curr.y = y
+    else:
+        curr.direction = dir0
 
-# 11300
-# too low
-# 121400
-# too low
-# 178007 
-# too high
-# 171102
-# incorrect
-
-#   1 1
-#   1
-# 1 1
-# 1
-0-149
-
-0-199
 
 def go_dir(curr: Node, steps: int, mat2d):
-    dir = get_direction(curr.direction)
-
     # eligible to go
     # next step is wall
     # wrap around
     for i in range(steps):
+        dir = get_direction(curr.direction)
         y = curr.y + dir[0]
         x = curr.x + dir[1]
         if is_eligible_to_go(x=x, y=y, mat2d=mat2d):
@@ -200,7 +167,7 @@ def go_dir(curr: Node, steps: int, mat2d):
                 curr.y = y
                 curr.x = x
         else:
-            #wrap_around(dir=dir, curr=curr, mat2d=mat2d)
+            # wrap_around(dir=dir, curr=curr, mat2d=mat2d)
             wrap_around_cube(dir=dir, curr=curr, mat2d=mat2d)
 
 def turn_left(curr:Node):
