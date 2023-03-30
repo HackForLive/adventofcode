@@ -1,6 +1,6 @@
 {
-    "python.defaultInterpreterPath": "C:\\work\\GIT\\adventofcode\\venv\\Scripts\\python.exe",
-    "python.linting.pylintPath": "C:\\work\\GIT\\adventofcode\\venv\\Scripts\\pylint.exe",
+    "python.defaultInterpreterPath": "/home/michael/git/adventofcode/venv/bin/python",
+    "python.linting.pylintPath": "/home/michael/git/adventofcode/venv/bin/pylint",
     "python.testing.pytestArgs": [
         "aoc2022"
     ],
@@ -56,6 +56,11 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "map": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "cstdarg": "cpp",
+        "unordered_set": "cpp",
+        "optional": "cpp",
+        "span": "cpp",
+        "variant": "cpp"
     }
 }
