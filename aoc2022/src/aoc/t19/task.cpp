@@ -20,7 +20,8 @@ using namespace std;
 //
 // How to build
 //
-//  g++ -o adv_2022_19 task.cpp dp_solver.cpp -I /path_to/boost_1_80_0
+//  g++ -o test aoc2022/src/aoc/t19/task.cpp aoc2022/src/aoc/t19/dp_solver.cpp 
+//  aoc2022/src/aoc/t19/dp_hash_solver.cpp aoc2022/src/aoc/t19/node.cpp -I /home/michael/Downloads/boost-1.82.0/libs/
 //
 
 int get_result_dp_table(int t, map<string, vector<int>>& costs, map<string, int>& max_values);
@@ -48,7 +49,7 @@ vector<int> getNumberFromString(string s) {
 
 int main() 
 {
-    auto input = std::ifstream("input.txt");
+    auto input = std::ifstream("aoc2022/src/aoc/t19/input.txt");
     const int TIME = 32;
     int result = 1;
     
