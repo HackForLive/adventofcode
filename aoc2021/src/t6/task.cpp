@@ -5,6 +5,7 @@
 #include <array>
 #include <sstream>
 #include <ctime>
+#include <filesystem>
 #include "decorator.hpp"
 
 //
@@ -25,11 +26,10 @@ std::vector<int> take_int(std::string str) {
 }
 
 std::vector<int> read_test_input(){
+    // std::cout << std::filesystem::current_path();
     auto input = std::ifstream("test.txt");
-
-    for( std::string line; getline( input, line ); ){
-        return take_int(line);
-    }
+    std::string line; getline( input, line );
+    return take_int(line);
 }
 
 int get_naive_simulation_result(std::vector<int> inputs, int days = 80){
@@ -43,33 +43,35 @@ int get_naive_simulation_result(std::vector<int> inputs, int days = 80){
             }
         }
     }
+    std::cout << "Using naive method:" << inputs.size() << std::endl;
     return inputs.size();
 }
 
 long get_result_using_2d(std::vector<int> & start_lanternfish_numbers, int days = 80){
 
     const int states_n = 9;
-    long  matrix[states_n][300];
+    long  matrix[300][states_n];
     for(int i = 0; i < states_n; i++){
         // sub optimal
-        matrix[i][0] = 1;
+        matrix[0][i] = 1;
     }
 
     for(int i = 1; i < days; i++){
         for(int j = states_n -1; j >= 0; j--){
             if (j == 0) {
-                matrix[j][i] = matrix[6][i-1] + matrix[8][i-1];
+                matrix[i][j] = matrix[i-1][6] + matrix[i-1][8];
             }else{
-                matrix[j][i] = matrix[j-1][i-1];
+                matrix[i][j] = matrix[i-1][j-1];
             }
         }
     }
 
     long res = 0;
     for(const auto& num : start_lanternfish_numbers){
-        res = res + matrix[0][days-num];
+        res = res + matrix[days-num][0];
     }
 
+    std::cout << "Using 2D memo array:" << res << std::endl;
     return res;
 }
 
@@ -89,6 +91,32 @@ long get_result_using_1d(std::vector<int> & start_lanternfish_numbers, int days 
         res = res + matrix[days-num];
     }
 
+    std::cout << "Using 1D memo array:" << res << std::endl;
+    return res;
+}
+
+long get_result_using_1d_memory_improved(std::vector<int> & start_lanternfish_numbers, int days = 80){
+
+    long res = 0;
+    const int n = 9; // 0-8 cycle states
+    long matrix[n] = {1, 2, 2, 2, 2, 2, 2, 2, 3};
+
+    if (days < 0) {
+        res = start_lanternfish_numbers.size();
+    }
+    else if (days < n) {
+        for(const auto& num : start_lanternfish_numbers)
+            res = res + matrix[(std::max(days-num, 0))%n];
+    }
+    else{
+        for(int i = n; i < days; i++)
+            matrix[i%n] = matrix[(i-7)%n] + matrix[(i-9)%n];
+
+        for(const auto& num : start_lanternfish_numbers)
+            res = res + matrix[(days-num)%n];
+    }
+
+    std::cout << "Using 1D memo array:" << res << std::endl;
     return res;
 }
 
@@ -99,13 +127,20 @@ int main(int argc, char* argv[]){
     }
 
     int days = std::stoi(argv[1]);
+    const int naive_day_limit = 130;
     
-    std::vector<int> numbers = read_test_input();\
+    std::vector<int> numbers = read_test_input();
     auto res_2d = make_decorator(get_result_using_2d)(numbers, days);
     auto res_1d = make_decorator(get_result_using_1d)(numbers, days);
-    std::cout << "Using 1D array:" << res_1d << std::endl;
-    std::cout << "Using 2D array:" << res_1d << std::endl;
+    auto res_1d_impr = make_decorator(get_result_using_1d_memory_improved)(numbers, days);
+    
+    
+    if (days < naive_day_limit){
+        auto res_naive = make_decorator(get_naive_simulation_result)(numbers, days);
+    }
+    else {
+        std::cout << "Not using naive method for more than " << naive_day_limit << " days." << std::endl;
+    }
     
     return 0;
 }
-
