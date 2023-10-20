@@ -100,17 +100,15 @@ long get_result_using_1d_memory_improved(std::vector<int> & start_lanternfish_nu
     long res = 0;
     const int n = 9; // 0-8 cycle states
     long matrix[n] = {1, 2, 2, 2, 2, 2, 2, 2, 3};
+    // std::fill(std::begin(matrix), std::end(matrix), 1);
 
-    if (days < 0) {
-        res = start_lanternfish_numbers.size();
-    }
-    else if (days < n) {
+    if (days < n) {
         for(const auto& num : start_lanternfish_numbers)
             res = res + matrix[(std::max(days-num, 0))%n];
     }
     else{
         for(int i = n; i < days; i++)
-            matrix[i%n] = matrix[(i-7)%n] + matrix[(i-9)%n];
+            matrix[i%n] += matrix[(i-7)%n];// + matrix[(i-9)%n];
 
         for(const auto& num : start_lanternfish_numbers)
             res = res + matrix[(days-num)%n];
