@@ -68,7 +68,7 @@ long get_result_using_2d(std::vector<int> & start_lanternfish_numbers, int days 
 
     long res = 0;
     for(const auto& num : start_lanternfish_numbers){
-        res = res + matrix[days-num][0];
+        res = res + matrix[(std::max(days-num, 0))][0];
     }
 
     std::cout << "Using 2D memo array:" << res << std::endl;
@@ -88,7 +88,7 @@ long get_result_using_1d(std::vector<int> & start_lanternfish_numbers, int days 
 
     long res = 0;
     for(const auto& num : start_lanternfish_numbers){
-        res = res + matrix[days-num];
+        res = res + matrix[(std::max(days-num, 0))];
     }
 
     std::cout << "Using 1D memo array:" << res << std::endl;
@@ -99,20 +99,14 @@ long get_result_using_1d_memory_improved(std::vector<int> & start_lanternfish_nu
 
     long res = 0;
     const int n = 9; // 0-8 cycle states
-    long matrix[n] = {1, 2, 2, 2, 2, 2, 2, 2, 3};
-    // std::fill(std::begin(matrix), std::end(matrix), 1);
+    long matrix[n];
+    std::fill(std::begin(matrix), std::end(matrix), 1);
 
-    if (days < n) {
-        for(const auto& num : start_lanternfish_numbers)
-            res = res + matrix[(std::max(days-num, 0))%n];
-    }
-    else{
-        for(int i = n; i < days; i++)
-            matrix[i%n] += matrix[(i-7)%n];// + matrix[(i-9)%n];
+    for(int i = 1; i < days; i++)
+        matrix[i%n] += matrix[(i+2)%n];
 
-        for(const auto& num : start_lanternfish_numbers)
-            res = res + matrix[(days-num)%n];
-    }
+    for(const auto& num : start_lanternfish_numbers)
+        res = res + matrix[(std::max(days-num, 0))%n];
 
     std::cout << "Using 1D memo array:" << res << std::endl;
     return res;
