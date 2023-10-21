@@ -32,6 +32,25 @@ std::vector<int> read_test_input(){
     return take_int(line);
 }
 
+long naive_recurse(int days, int number){
+    if (days - number < 1) {
+        return 1;
+    }
+
+    return naive_recurse(days-number - 1, 8) + naive_recurse(days-number - 1, 6); 
+}
+
+long naive_recurse_result(std::vector<int>& start_lanternfish_numbers, int days = 80){
+    
+    long res = 0;
+    for(const auto& num : start_lanternfish_numbers){
+        res = res + naive_recurse(days, num);
+    }
+
+    std::cout << "Using recurse:" << res << std::endl;
+    return res;
+}
+
 int get_naive_simulation_result(std::vector<int> inputs, int days = 80){
     for(int i = 0; i < days; i++){
         int k = inputs.size();
@@ -119,7 +138,7 @@ int main(int argc, char* argv[]){
     }
 
     int days = std::stoi(argv[1]);
-    const int naive_day_limit = 130;
+    const int naive_day_limit = 140;
     
     std::vector<int> numbers = read_test_input();
     auto res_2d = make_decorator(get_result_using_2d)(numbers, days);
@@ -128,7 +147,8 @@ int main(int argc, char* argv[]){
     
     
     if (days < naive_day_limit){
-        auto res_naive = make_decorator(get_naive_simulation_result)(numbers, days);
+        auto res_naive_iteration = make_decorator(get_naive_simulation_result)(numbers, days);
+        auto res_recurse = make_decorator(naive_recurse_result)(numbers, days);
     }
     else {
         std::cout << "Not using naive method for more than " << naive_day_limit << " days." << std::endl;
