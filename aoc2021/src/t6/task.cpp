@@ -32,6 +32,7 @@ std::vector<int> read_test_input(){
     return take_int(line);
 }
 
+// Exponential
 long naive_recurse(int days, int number){
     if (days - number < 1) {
         return 1;
@@ -40,7 +41,7 @@ long naive_recurse(int days, int number){
     return naive_recurse(days-number - 1, 8) + naive_recurse(days-number - 1, 6); 
 }
 
-long naive_recurse_result(std::vector<int>& start_lanternfish_numbers, int days = 80){
+long get_naive_recurse_result(std::vector<int>& start_lanternfish_numbers, int days = 80){
     
     long res = 0;
     for(const auto& num : start_lanternfish_numbers){
@@ -148,7 +149,7 @@ int main(int argc, char* argv[]){
     
     if (days < naive_day_limit){
         auto res_naive_iteration = make_decorator(get_naive_simulation_result)(numbers, days);
-        auto res_recurse = make_decorator(naive_recurse_result)(numbers, days);
+        auto res_recurse = make_decorator(get_naive_recurse_result)(numbers, days);
     }
     else {
         std::cout << "Not using naive method for more than " << naive_day_limit << " days." << std::endl;
