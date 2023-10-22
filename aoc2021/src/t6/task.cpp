@@ -42,8 +42,13 @@ std::vector<int> take_int(std::string str) {
 std::vector<int> read_test_input(){
     // std::cout << std::filesystem::current_path();
     auto input = std::ifstream("test.txt");
-    std::string line; getline( input, line );
-    return take_int(line);
+    if( input.good()){
+        std::string line; getline( input, line );
+        return take_int(line);
+    }
+    else{
+        throw std::runtime_error("nput file test.txt not found.");
+    }
 }
 
 // Exponential
@@ -160,6 +165,104 @@ long get_result_using_1d_memory_improved(std::vector<int> & start_lanternfish_nu
     return res;
 }
 
+void print_matrix(const std::vector<std::vector<long>>& M){
+    std::cout << "--------------------" << std::endl;
+    for ( const auto &row : M )
+    {
+        for ( const auto &s : row ) std::cout << s << ' ';
+        std::cout << std::endl;
+    }
+    std::cout << "--------------------" << std::endl;
+}
+
+std::vector<std::vector<long>> matrix_multiplication(const std::vector<std::vector<long>>& M,
+const std::vector<std::vector<long>>& K){
+    std::vector<std::vector<long>> res_mult;
+
+    int m_rows = M.size();
+    int m_cols = M[0].size();
+    int k_cols = K[0].size();
+    for(int i = 0; i < m_rows; i++){
+        std::vector<long> tmp;
+        for(int j = 0; j < k_cols; j++){
+            long res = 0;
+            for(int k = 0; k < m_cols; k++){
+                res += M[i][k]*K[k][j];
+            }
+            tmp.push_back(res);
+        }
+        res_mult.push_back(tmp);
+    }
+    return res_mult;
+}
+
+std::vector<std::vector<long>> matrix_power(const std::vector<std::vector<long>> & M, long n){
+    if (n == 0 | n == 1){
+        return M;
+    }
+
+    std::vector<std::vector<long>> F = {
+        {0, 0, 0, 0, 0, 0, 1, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 1, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 1, 0},
+    };
+ 
+    auto p = matrix_power(M, n/2);
+    auto k = matrix_multiplication(p, p);
+ 
+    if (n % 2 != 0)
+        k = matrix_multiplication(F, k);
+    return k;
+}
+
+// O(cycle_count^3 * log(days)) - time, O(cycle_count^2) - memory
+long get_result_using_matrix_power(std::vector<int> & start_lanternfish_numbers, int days = 80){
+    // X_(i+1) = M * X_i
+    // find matrix M such satisfies the linear equation/combination
+
+    std::vector<std::vector<long>> M = {
+        {0, 0, 0, 0, 0, 0, 1, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 1, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 1, 0},
+    };
+
+    std::vector<std::vector<long>> X = {
+        {1},
+        {1},
+        {1},
+        {1},
+        {1},
+        {1},
+        {1},
+        {1},
+        {1}
+    };
+
+
+    auto res = matrix_power(M, days);
+    auto tmp = matrix_multiplication(res, X);
+
+    long result = 0;
+    for(const auto& num : start_lanternfish_numbers)
+        result += tmp[num][0];
+
+    std::cout << "Using matrix powering:" << result << std::endl;
+    return result;
+}
+
+
 int main(int argc, char* argv[]){
     if (argc < 2){
         std::cout << "Missing days parameter!" << std::endl;
@@ -168,7 +271,7 @@ int main(int argc, char* argv[]){
 
     int days = std::stoi(argv[1]);
     const int naive_day_limit = 140;
-    const int naive_recurse_day_limit = 257;
+    const int naive_recurse_day_limit = 200;
     
     std::vector<int> numbers = read_test_input();
     auto res_2d = make_decorator(get_result_using_2d)(numbers, days);
@@ -181,6 +284,8 @@ int main(int argc, char* argv[]){
     if (days < naive_recurse_day_limit){
         auto res_recurse = make_decorator(get_naive_recurse_result)(numbers, days);
     }
+
+    auto res_power_matrix = make_decorator(get_result_using_matrix_power)(numbers, days);
     
     return 0;
 }
