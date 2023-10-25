@@ -4,23 +4,24 @@ import sys
 import functools
 import time
 from typing import List, Tuple
+from functools import partial
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
 input_file = os.path.join(curr_dir, 'test.txt')
 
 
-def cost(arr: List[int], x: int):
+def cost(numbers: List[int], x: int):
     """
     Cost function for first part
     """
-    return sum([abs(x - item) for item in arr])
+    return sum([abs(x - item) for item in numbers])
 
 
-def cost_2(arr: List[int], x: int):
+def cost_2(numbers: List[int], x: int):
     """
     Cost function for second part
     """
-    return sum([((abs(x - item) + 1)*abs(x - item) // 2) for item in arr])
+    return sum([((abs(x - item) + 1)*abs(x - item) // 2) for item in numbers])
 
 
 def custom_binary_search(lookup_arr: List[int], cost_fn) -> Tuple[int, int]:
@@ -34,10 +35,9 @@ def custom_binary_search(lookup_arr: List[int], cost_fn) -> Tuple[int, int]:
  
         mid = (high + low) // 2
         
-        curr = cost(arr=numbers, x=lookup_arr[mid])
-        left = cost(arr=numbers, x=lookup_arr[mid-1])
-        right = cost(arr=numbers, x=lookup_arr[mid+1])
-        print(f"right: {right}, curr: {curr} and left: {left}")
+        curr = cost_fn(x=lookup_arr[mid])
+        left = cost_fn(x=lookup_arr[mid-1])
+        right = cost_fn(x=lookup_arr[mid+1])
         # If x is greater, ignore left half
         # if arr[mid] < x:
         if right < curr and curr < left:
@@ -79,7 +79,7 @@ def solve_1():
     with open(input_file, 'rt', encoding='utf8') as f:
         numbers = [int(n) for n in f.read().strip().split(',')]
         for number in range(min(numbers), max(numbers)):
-            tmp = cost(arr=numbers, x=number)
+            tmp = cost(numbers=numbers, x=number)
             if tmp < res:
                 res = tmp
                 res_number = number
@@ -93,7 +93,7 @@ def solve_1_improved():
     with open(input_file, 'rt', encoding='utf8') as f:
         numbers = [int(n) for n in f.read().strip().split(',')]
         print(custom_binary_search(lookup_arr=list(range(min(numbers), max(numbers))),
-                                   numbers=numbers))
+                                   cost_fn=partial(cost, numbers=numbers)))
 
 
 @timer_decorator
@@ -104,7 +104,7 @@ def solve_2():
         numbers = [int(n) for n in f.read().strip().split(',')]
         
         for number in range(min(numbers), max(numbers)):
-            tmp = cost_2(arr=numbers, x=number)
+            tmp = cost_2(numbers=numbers, x=number)
             if tmp < res:
                 res = tmp
                 res_number = number
@@ -118,8 +118,8 @@ def solve_2_improved():
     with open(input_file, 'rt', encoding='utf8') as f:
         numbers = [int(n) for n in f.read().strip().split(',')]
         print(custom_binary_search(lookup_arr=list(range(min(numbers), max(numbers))),
-                                   numbers=numbers))
-        
+                                   cost_fn=partial(cost_2, numbers=numbers)))
+
 
 if __name__ == '__main__':
     solve_1()
