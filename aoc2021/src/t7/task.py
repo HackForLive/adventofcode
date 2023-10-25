@@ -26,7 +26,7 @@ def cost_2(numbers: List[int], x: int):
 
 def custom_binary_search(lookup_arr: List[int], cost_fn) -> Tuple[int, int]:
     """
-    We are looking into \/
+    We are searching for the minimum
     """
     low = 0
     high = len(lookup_arr) - 1

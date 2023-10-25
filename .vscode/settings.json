@@ -1,13 +1,11 @@
 {
-    "python.defaultInterpreterPath": "/home/michael/git/adventofcode/venv/bin/python",
-    "python.linting.pylintPath": "/home/michael/git/adventofcode/venv/bin/pylint",
+    "python.defaultInterpreterPath": "D:/git/adventofcode/venv/Scripts/python.exe",
+    "pylint.interpreter": "D:/git/adventofcode/venv/Scripts/pylint.exe",
     "python.testing.pytestArgs": [
         "aoc2022"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
     "files.associations": {
         "array": "cpp",
         "atomic": "cpp",
