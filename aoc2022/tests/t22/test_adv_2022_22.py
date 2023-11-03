@@ -1,5 +1,5 @@
 import pytest
-from ...src.aoc.t22 import adv_2022_22 as unit_test
+from aoc2022.src.aoc.t22 import adv_2022_22 as unit_test
 
 @pytest.mark.parametrize("test_input,expected", [("N", [-1,0]), ("S", [1,0])])
 def test_get_direction(test_input, expected):

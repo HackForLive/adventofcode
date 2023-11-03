@@ -1,2 +1,4 @@
 numpy
 pylint
+line_profiler
+pytest

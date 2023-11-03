@@ -4,7 +4,7 @@ import copy
 
 import numpy as np
 
-from src.aoc.t22.point import Node
+from aoc2022.src.aoc.t22.point import Node
 
 
 def get_direction(direction: str):
