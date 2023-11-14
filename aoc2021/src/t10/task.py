@@ -151,7 +151,7 @@ def solve_1():
 
 def solve_2():
     with open(input_file, 'r', encoding='utf8') as f:
-        res = sorted(filter(lambda x: x > 0, 
+        res = sorted(filter(lambda x: x > 0,
                             (incomplete_bracket_pricer(line.strip()) for line in f.readlines())))
         print(res[len(res)//2])
 
