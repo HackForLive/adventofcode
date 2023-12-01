@@ -12,7 +12,8 @@ import heapq
 
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
-input_file = os.path.join(curr_dir, 'test.txt')
+input_file = os.path.join(curr_dir, 'input_test.txt')
+matrix_file = os.path.join(curr_dir, 'matrix.txt')
 
 
 @dataclass(frozen=True, eq=True)
@@ -102,22 +103,36 @@ def solve_1():
         res = bfs(matrix=matrix_with_offset, offset=offset, shape=matrix.shape)
         print(res)
 
-# def solve_2():
-#     offset = 1
-#     val = -1
-#     with open(input_file, 'r', encoding='utf8') as f:
-#         arr_2d = np.array([[int(number) for number in line.strip()] for line in f.readlines()])
-#         matrix = np.asmatrix(arr_2d)
-#         matrix_with_offset = get_matrix_with_offset(matrix=matrix, val=val, offset=offset)
-#         res = sorted((get_hole_value(matrix_with_offset, iy=iy+offset, ix=ix+offset) for iy, ix in
-#                    np.ndindex(matrix.shape)), reverse=True)
+def solve_2():
+    offset = 1
+    val = -1
+    extend_val = 5
+    mod_val = 10
+    with open(input_file, 'r', encoding='utf8') as f:
+        arr_2d = np.array([[int(number) for number in line.strip()] for line in f.readlines()])
+        matrix = np.asmatrix(arr_2d)
+        height = matrix.shape[0]
+        width = matrix.shape[1]
+        matrix_extended = np.tile(matrix,(extend_val,extend_val))
+        for i in range(0,extend_val):
+            for j in range(0,extend_val):
+                matrix_extended[i*height:(i+1)*height,j*width:(j+1)*width] = (matrix + matrix*(j+i))%mod_val
+
+        with open(matrix_file, mode='w', encoding='utf-8') as f:
+            np.savetxt(f, matrix_extended, fmt='%.0f', delimiter=',')
+        # matrix_extended.tofile(matrix_file, sep='\r\n')
+
+        matrix_with_offset = get_matrix_with_offset(matrix=matrix_extended, val=val, offset=offset)
+        print(matrix_with_offset)
+        res = bfs(matrix=matrix_with_offset, offset=offset, shape=matrix_extended.shape)
+        print(res)
 
 
 if __name__ == '__main__':
     # solve_1()
-    # solve_2()
-    lp = LineProfiler()
-    lp.add_function(bfs)
-    lp_wrapper = lp(solve_1)
-    lp_wrapper()
-    lp.print_stats()
+    solve_2()
+    # lp = LineProfiler()
+    # lp.add_function(bfs)
+    # lp_wrapper = lp(solve_2)
+    # lp_wrapper()
+    # lp.print_stats()
