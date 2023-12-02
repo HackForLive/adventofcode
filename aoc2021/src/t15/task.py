@@ -110,8 +110,8 @@ def solve_2():
 
         matrix_extended = matrix_extended + 1
 
-        with open(matrix_file, mode='w', encoding='utf-8') as f:
-            np.savetxt(f, matrix_extended, fmt='%.0f', delimiter=',')
+        # with open(matrix_file, mode='w', encoding='utf-8') as f:
+        #     np.savetxt(f, matrix_extended, fmt='%.0f', delimiter=',')
         # matrix_extended.tofile(matrix_file, sep='\r\n')
 
         matrix_with_offset = get_matrix_with_offset(matrix=matrix_extended, val=val, offset=offset)
@@ -122,9 +122,9 @@ def solve_2():
 
 if __name__ == '__main__':
     # solve_1()
-    solve_2()
-    # lp = LineProfiler()
-    # lp.add_function(bfs)
-    # lp_wrapper = lp(solve_2)
-    # lp_wrapper()
-    # lp.print_stats()
+    # solve_2()
+    lp = LineProfiler()
+    lp.add_function(bfs)
+    lp_wrapper = lp(solve_2)
+    lp_wrapper()
+    lp.print_stats()
