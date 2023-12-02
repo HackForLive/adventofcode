@@ -48,6 +48,7 @@ def get_matrix_with_offset(matrix: np.matrix, val: int, offset: int)  -> np.matr
     offset_matrix[rows:rows+matrix.shape[0], cols:cols+matrix.shape[1]] = matrix
     return offset_matrix
 
+# TODO improve with Dijkstra algo
 def bfs(matrix: np.matrix, offset: int, shape: Tuple[int, int]):
     start = Node(x=0 + offset, y = 0 + offset, value=matrix[0 + offset,0 + offset], path=[])
     q = []
