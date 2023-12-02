@@ -10,7 +10,7 @@ def solve_1():
         print(sum(n[0]*10 + n[-1] for n in
                   [[int(c) for c in line.strip() if str(c).isdigit()] for line in f.readlines()]))
 
-def find_first_and_last(line: str):
+def get_number(line: str):
     res = 0
     dic_w = {
         'one': 1,
@@ -24,40 +24,23 @@ def find_first_and_last(line: str):
         'nine': 9,
     }
 
-    first_i = len(line)
-    first_n = len(line)
-    last_i = -1
-    last_n = -1
-    reverted_line = line[::-1]
+    first_occurments = [(line.find(key), item)
+                        for key, item in dic_w.items() if line.find(key) != -1]
 
-    for key, item in dic_w.items():
-        f = line.find(key)
-        if f >= 0 and f < first_i:
-            first_i = f
-            first_n = item
-
-        l = reverted_line.find(key[::-1])
-        if l >= 0 and len(line) - l - 1 > last_i:
-            last_i = len(line) - l - 1
-            last_n = item
+    last_occurments = [(len(line) - line[::-1].find(key[::-1]) -1, item)
+                        for key, item in dic_w.items() if line[::-1].find(key[::-1]) != -1]
 
 
     numbers = [(idx, int(c)) for idx, c in enumerate(line) if str(c).isdigit()]
-    if numbers and numbers[0][0] < first_i:
-        res += 10*numbers[0][1]
-    else:
-        res += 10*first_n
 
-    if numbers and numbers[-1][0] > last_i:
-        res += numbers[-1][1]
-    else:
-        res += last_n
-    return res
+    res = sorted(first_occurments + last_occurments + numbers, key=lambda x: x[0])
+    return res[0][1]*10 + res[-1][1]
 
 
 def solve_2():
     with open(input_file, 'r', encoding='utf8') as f:
-        print(sum((find_first_and_last(line=line.strip()) for line in f.readlines())))
+        print(sum((get_number(line=line.strip()) for line in f.readlines())))
 
 if __name__ == '__main__':
+    solve_1()
     solve_2()
