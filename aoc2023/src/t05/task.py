@@ -58,9 +58,10 @@ def parse():
                 while idl < len(lines) and lines[idl].strip() != '':
                     humidity_to_location.append([int(n.strip()) for n in lines[idl].split(' ')])
                     idl = idl + 1
-            else:
-                print(lines[idl])
             idl = idl + 1
+
+    return (seeds, seed_to_soil, soil_to_fertilizer, fertilizer_to_water, water_to_light, 
+            light_to_temperature, temperature_to_humidity, humidity_to_location)
     # print(seeds)
     # print(seed_to_soil)
     # print(soil_to_fertilizer)
@@ -69,18 +70,6 @@ def parse():
     # print(light_to_temperature)
     # print(temperature_to_humidity)
     # print(humidity_to_location)
-
-    res_seed = []
-    for seed in seeds:
-        seed = map_seed(seed=seed, s_map=seed_to_soil)
-        seed = map_seed(seed=seed, s_map=soil_to_fertilizer)
-        seed = map_seed(seed=seed, s_map=fertilizer_to_water)
-        seed = map_seed(seed=seed, s_map=water_to_light)
-        seed = map_seed(seed=seed, s_map=light_to_temperature)
-        seed = map_seed(seed=seed, s_map=temperature_to_humidity)
-        seed = map_seed(seed=seed, s_map=humidity_to_location)
-        res_seed.append(seed)
-    print(min(res_seed))
 
 
 def map_seed(seed: int, s_map: List[List[int]]):
@@ -96,7 +85,41 @@ def map_seed(seed: int, s_map: List[List[int]]):
 
 # @timer_decorator
 def solve_1():
-    parse()
+    (seeds, seed_to_soil, soil_to_fertilizer, fertilizer_to_water, water_to_light,
+            light_to_temperature, temperature_to_humidity, humidity_to_location) = parse()
+    res_seed = []
+    for seed in seeds:
+        seed = map_seed(seed=seed, s_map=seed_to_soil)
+        seed = map_seed(seed=seed, s_map=soil_to_fertilizer)
+        seed = map_seed(seed=seed, s_map=fertilizer_to_water)
+        seed = map_seed(seed=seed, s_map=water_to_light)
+        seed = map_seed(seed=seed, s_map=light_to_temperature)
+        seed = map_seed(seed=seed, s_map=temperature_to_humidity)
+        seed = map_seed(seed=seed, s_map=humidity_to_location)
+        res_seed.append(seed)
+    print(min(res_seed))
+
+def solve_2():
+    (seeds, seed_to_soil, soil_to_fertilizer, fertilizer_to_water, water_to_light,
+            light_to_temperature, temperature_to_humidity, humidity_to_location) = parse()
+    seeds_2 = [range(seeds[step], seeds[step] + seeds[step+1], 1)
+               for step in list(range(0, len(seeds), 2))]
+    res = None
+    for s in seeds_2:
+        print('range')
+        for seed in s:
+            seed = map_seed(seed=seed, s_map=seed_to_soil)
+            seed = map_seed(seed=seed, s_map=soil_to_fertilizer)
+            seed = map_seed(seed=seed, s_map=fertilizer_to_water)
+            seed = map_seed(seed=seed, s_map=water_to_light)
+            seed = map_seed(seed=seed, s_map=light_to_temperature)
+            seed = map_seed(seed=seed, s_map=temperature_to_humidity)
+            seed = map_seed(seed=seed, s_map=humidity_to_location)
+            
+            if not res or seed < res:
+                res = seed
+    print(res)
 
 if __name__ == '__main__':
     solve_1()
+    solve_2()
