@@ -58,6 +58,7 @@ def solve_1():
         res_sum *= n
     print(res_sum)
 
+# TODO : solve with binary search -> O(n) to O(log(n))
 def solve_2():
     time, dist = parse_2()
     # print(time, dist)
