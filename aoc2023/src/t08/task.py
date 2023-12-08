@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 import pathlib
+import math
 from typing import Dict, List, Tuple
 
 
@@ -55,12 +56,13 @@ def solve_2():
     instr, node_dict = parse()
 
     curr: List[str] = [node_name for node_name in node_dict if node_name[-1] == 'A']
+    res: Dict[str, int] = {idc:-1 for idc, c in enumerate(curr)}
     print(curr)
 
-    steps = 0
+    steps = 1
     should_run = True
     while should_run:
-        for instruction in instr:
+        for k, instruction in enumerate(instr):
             should_run = False
             for i in range(0, len(curr), 1):
                 if instruction == 'R':
@@ -69,12 +71,20 @@ def solve_2():
                     curr[i] = node_dict[curr[i]][0]
                 if curr[i][-1] != 'Z':
                     should_run = True
+                else:
+                    if res[i] == -1:
+                        res[i] = steps
+                    print(f"{i =}, {curr =}, {steps =}, {k =}")
             steps += 1
             if not should_run:
                 break
-
-    print(steps)
+        if -1 not in res.values():
+            break
+    print(res)
+    print(math.lcm(*res.values()))
 
 if __name__ == '__main__':
     # solve_1()
     solve_2()
+    # too low
+    # 15995167053923
