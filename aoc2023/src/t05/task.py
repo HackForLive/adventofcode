@@ -74,24 +74,11 @@ def parse():
 
 def map_seed(seed: int, s_map: List[List[int]]):
     res = seed
-    # print(f"seed before {res}")
     for s_m in s_map:
         if s_m[1] <= seed <= s_m[1]+s_m[2]-1:
             res = s_m[0] + (seed - s_m[1])
             break
-    # print(f"seed after {res}")
     return res
-
-def map_reverse_seed(seed: int, s_map: List[List[int]]):
-    res = seed
-    # print(f"seed before {res}")
-    for s_m in s_map:
-        if s_m[0] <= seed <= s_m[0]+s_m[2]-1:
-            res = s_m[1] + (seed - s_m[0])
-            break
-    # print(f"seed after {res}")
-    return res
-
 
 # @timer_decorator
 def solve_1():
@@ -109,55 +96,71 @@ def solve_1():
         res_seed.append(seed)
     print(min(res_seed))
 
-def solve_2_reverse():
-    (seeds, seed_to_soil, soil_to_fertilizer, fertilizer_to_water, water_to_light,
-            light_to_temperature, temperature_to_humidity, humidity_to_location) = parse()
-    seeds_2 = [range(seeds[step], seeds[step] + seeds[step+1], 1)
-               for step in list(range(0, len(seeds), 2))]
 
-    stop_n = 1
-    found: bool = False
+def sort_and_merge_intervals(intervals: List[range]):
+    res = []
+    s_ints = sorted(intervals, key=lambda x: x.start)
+    for s in range(1, len(s_ints)):
+        if s_ints[s-1].start == s_ints[s].start and s_ints[s-1].stop == s_ints[s].stop:
+            res.append(range(s_ints[s].start, s_ints[s].stop))
+        elif s_ints[s-1].stop > s_ints[s].start:
+            res.append(range(s_ints[s-1].start, max(s_ints[s-1].stop, s_ints[s].stop)))
+        else:
+            res.append(range(s_ints[s-1].start, s_ints[s-1].stop))
+            if s == len(s_ints) - 1:
+                res.append(range(s_ints[s].start, s_ints[s].stop))
+    return res
 
-    for _ in range(0,3000000000, 1):
-        seed = stop_n
-        seed = map_reverse_seed(seed=seed, s_map=humidity_to_location)
-        seed = map_reverse_seed(seed=seed, s_map=temperature_to_humidity)
-        seed = map_reverse_seed(seed=seed, s_map=light_to_temperature)
-        seed = map_reverse_seed(seed=seed, s_map=water_to_light)
-        seed = map_reverse_seed(seed=seed, s_map=fertilizer_to_water)
-        seed = map_reverse_seed(seed=seed, s_map=soil_to_fertilizer)
-        seed = map_reverse_seed(seed=seed, s_map=seed_to_soil)
+def apply_mapping(dest: range, source: range, orig_r: range) -> List[range]:
 
-        # is in seeds range?
-        for s in seeds_2:
-            if seed in s:
-                found = True
-                break
-        if found:
-            break
-        stop_n = stop_n+ 1
-    print(stop_n)
-    print(found)
-    # quick cheat - 100165128
-    
-    # stop_n = 529830500
-    # initial_s = 0
-    # for i in range(stop_n, 129000000, -100):
-    #     seed = i
-    #     seed = map_seed(seed=seed, s_map=seed_to_soil)
-    #     seed = map_seed(seed=seed, s_map=soil_to_fertilizer)
-    #     seed = map_seed(seed=seed, s_map=fertilizer_to_water)
-    #     seed = map_seed(seed=seed, s_map=water_to_light)
-    #     seed = map_seed(seed=seed, s_map=light_to_temperature)
-    #     seed = map_seed(seed=seed, s_map=temperature_to_humidity)
-    #     seed = map_seed(seed=seed, s_map=humidity_to_location)
-    #     if seed < stop_n:
-    #         stop_n = seed
-    #         initial_s = i
-    # print(stop_n)
-    # print(initial_s)
-    
-    # 303 is too low
+    diff = source.start - dest.start
+    # outside
+    if source.stop <= orig_r.start or source.start >= orig_r.stop:
+        # just return the original
+        return [orig_r]
+    # inside orig
+    elif source.start < orig_r.start and source.stop > orig_r.stop:
+        # three intervals
+        return [range(orig_r.start - diff, orig_r.stop - diff)]
+    # insde source
+    elif orig_r.start < source.start and orig_r.stop > source.stop:
+        return [
+            range(source.start, orig_r.start - 1),
+            range(orig_r.start - diff, orig_r.stop - diff),
+            range(orig_r.stop + 1, source.stop)]
+    # left
+    elif source.start < orig_r.stop <= source.stop and orig_r.start <= source.start:
+        return [
+            range(orig_r.start, source.start - 1),
+            range(source.start - diff, orig_r.stop - diff)
+            ]
+    # right
+    elif source.stop > orig_r.start >= source.start and orig_r.stop >= source.stop:
+        return [
+            range(orig_r.start - diff, source.stop - diff),
+            range(source.stop - diff + 1, orig_r.stop)
+            ]
+    else:
+        # print(source)
+        # print(orig_r)
+        raise ValueError('What???')
+
+def get_mapping_range_from_mapping(mapping: List[int]) -> (range, range):
+    # print(mapping)
+    return range(mapping[0], mapping[0] + mapping[2]), range(mapping[1], mapping[1] + mapping[2])
+
+def find_range_and_apply_mapping(intervals: List[range], mapping: List[int]):
+
+    m_dest, m_source = get_mapping_range_from_mapping(mapping=mapping)
+    res: List[range] = []
+    for i in range(0, len(intervals), 1):
+        if intervals[i].stop < m_source.start or intervals[i].start > m_source.stop:
+            res.append(intervals[i])
+        # do mapping
+        else:
+            res.extend(apply_mapping(source=m_source, dest=m_dest, orig_r=intervals[i]))
+    return res
+
 
 def solve_2():
     (seeds, seed_to_soil, soil_to_fertilizer, fertilizer_to_water, water_to_light,
@@ -166,6 +169,8 @@ def solve_2():
                for step in list(range(0, len(seeds), 2))]
 
     # print(seeds_2)
+    seeds_2 = sort_and_merge_intervals(seeds_2)
+    print(seeds_2)
     for map_s in (
         seed_to_soil,
         soil_to_fertilizer,
@@ -175,71 +180,17 @@ def solve_2():
         temperature_to_humidity,
         humidity_to_location
             ):
-        n = len(seeds_2)
-        # for i in range(n):
-            # print(i)
-            # seeds_2.extend(map_seed_interval(seed_r=seeds_2[i], s_map=map_s))
-        # print(seeds_2)
-    # for seed in range(len(seeds_2)):
-    #     seeds_2.extend(map_seed_interval(seed_r=seed, s_map=soil_to_fertilizer))
-    # for seed in range(len(seeds_2)):
-    #     seeds_2.extend(map_seed_interval(seed_r=seed, s_map=soil_to_fertilizer))
+        print(f"{map_s =}")
+        for m_s in map_s:
+            print(f"{m_s =}")
+            seeds_2 = find_range_and_apply_mapping(intervals=seeds_2, mapping=m_s)
+            print(f"{seeds_2 =}")
+            seeds_2 = sort_and_merge_intervals(seeds_2)
+        break
+        # break
+    print(seeds_2[:50])
 
-
-    print(min([seed_i.start for seed_i in seeds_2]))
-
-def map_seed_intervals(seed_r: range, s_map: List[List[int]]):
-    start = seed_r.start
-    stop = seed_r.stop
-
-    res: List[range] = [seed_r]
-    for s_m in s_map:
-        for r in res:
-            tmp = map_seed_interval(seed_r=seed_r, s_m=s_m)
-        res.extend
-    return res
-
-
-def map_seed_interval(seed_r: range, s_m: List[int]) -> List[range]:
-    start = seed_r.start
-    stop = seed_r.stop
-
-    res: List[range] = []
-    n_start = -1
-    n_stop = -1
-
-    if s_m[1] <= start <= s_m[1]+s_m[2]-1:
-        if stop > s_m[1]+s_m[2]-1:
-            n_stop = s_m[1]+s_m[2]-1
-            n_stop = s_m[0] + (n_stop - s_m[1])
-            n_start = s_m[0] + (start - s_m[1])
-
-            if range(s_m[1]+s_m[2], stop):
-                res.append(range(s_m[1]+s_m[2], stop))
-
-            res.append(range(n_start, n_stop))
-        else:
-            n_stop = s_m[0] + (stop - s_m[1])
-            n_start = s_m[0] + (start - s_m[1])
-            res.append(range(n_start, n_stop))
-    elif s_m[1] <= stop <= s_m[1]+s_m[2]-1:
-        if start < s_m[1]:
-            n_start = s_m[1]
-            n_start = s_m[0] + (n_start - s_m[1])
-            n_stop = s_m[0] + (stop - s_m[1])
-
-            if range(start, s_m[1]):
-                res.append(range(start, s_m[1]))
-
-            res.append(range(n_start, n_stop))
-        else:
-            n_start = s_m[0] + (start - s_m[1])
-            n_stop = s_m[0] + (stop - s_m[1])
-            res.append(range(n_start, n_stop))
-
-    # res.append(seed_r)
-    return res
-
+    print(sorted(seeds_2, key=lambda x: x.start)[0].start)
 
 if __name__ == '__main__':
     solve_1()
