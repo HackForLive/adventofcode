@@ -41,10 +41,40 @@ def next_number(seq: List[int]):
         res += seq[i]
     return res
 
+def previous_number(seq: List[int]):
+    # print(seq)
+    res: int = 0
+    n = 0
+    should_run = True
+    while should_run:
+        last = seq[n]
+        for i in range(n, len(seq)-1, 1):
+            tmp = seq[i+1]-last
+            last = seq[i+1]
+            seq[i+1] = tmp
+            if tmp == 0 and i == len(seq) - 2:
+                should_run = False
+                break
+        print(f"{seq =}")
+        if not should_run:
+            break
+        n = n + 1
+    print(f"{n =}")
+    for i in range(n, -1, -1):
+        if i % 2 == 0:
+            res = res + seq[i]
+        else:
+            res = res - seq[i]
+    print(f"{res =}")
+    return res
 
 def solve_1():
     print(sum((next_number(num) for num in parse())))
 
+def solve_2():
+    print(sum((previous_number(num) for num in parse())))
+
 
 if __name__ == '__main__':
-    solve_1()
+    # solve_1()
+    solve_2()
