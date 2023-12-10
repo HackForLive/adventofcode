@@ -7,7 +7,7 @@ from typing import List, Tuple
 import numpy as np
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
-input_file = os.path.join(curr_dir, 'test.txt')
+input_file = os.path.join(curr_dir, 'input_test.txt')
 
 
 def get_matrix_with_offset(matrix: np.matrix, val: str, offset: int)  -> np.matrix:
@@ -27,7 +27,8 @@ def find_start(start: str, matrix: np.matrix):
     res = np.where(matrix == start)
     return int(res[0][0]), int(res[1][0])
 
-def bfs(token: str, start_idx: Tuple[int, int], matrix: np.numpy) -> Tuple[bool, int]:
+def bfs(token: str, start_idx: Tuple[int, int], matrix: np.numpy) -> Tuple[
+    bool, int, List[Tuple[int,int]]]:
     is_cycle = False
     cycle_len = 0
     paths = np.zeros(shape=matrix.shape, dtype=int)
@@ -35,6 +36,8 @@ def bfs(token: str, start_idx: Tuple[int, int], matrix: np.numpy) -> Tuple[bool,
 
     paths[start_idx] = -1
     stack = deque()
+    memo: List[Tuple[int,int]] = []
+    memo.append(start_idx)
     for p in pipe_mapping(pipe=token):
         # print(f"{p =}")
         stack.append((p[0] + start_idx[0], p[1] + start_idx[1]))
@@ -44,6 +47,7 @@ def bfs(token: str, start_idx: Tuple[int, int], matrix: np.numpy) -> Tuple[bool,
 
     while stack and not is_cycle:
         curr = stack.pop()
+        memo.append(curr)
         pipe = matrix[curr[0], curr[1]]
         # print(f"{curr =}, {pipe =}")
 
@@ -66,7 +70,8 @@ def bfs(token: str, start_idx: Tuple[int, int], matrix: np.numpy) -> Tuple[bool,
         cycle_len = cycle_len + 1
 
     print(paths)
-    return is_cycle, cycle_len
+    print(memo)
+    return is_cycle, cycle_len, memo
 
 def pipe_mapping(pipe: str) -> List[Tuple[int, int]]:
     pipe_dic = {
@@ -91,11 +96,28 @@ def solve_1():
     start = ['L', '|', '7', '-', 'F', 'J']
 
     for s in start:
-        is_cycle, length = bfs(token=s, start_idx=start_idx, matrix=matrix)
+        is_cycle, length, _ = bfs(token=s, start_idx=start_idx, matrix=matrix)
         if is_cycle:
             print(length)
             print((length+1)/2)
             break
+
+def solve_2():
+    matrix = parse()
+    start_idx = find_start(start='S', matrix=matrix)
+
+    # cycle length
+    # + find cycle
+
+    start = ['L', '|', '7', '-', 'F', 'J']
+
+    for s in start:
+        is_cycle, length, memo = bfs(token=s, start_idx=start_idx, matrix=matrix)
+        if is_cycle:
+            # print(length)
+            # print((length+1)/2)
+            # memo - actual cycle path
+            """"""
 
 if __name__ == '__main__':
     solve_1()
