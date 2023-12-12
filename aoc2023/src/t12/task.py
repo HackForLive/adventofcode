@@ -6,7 +6,7 @@ import itertools
 import copy
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
-input_file = os.path.join(curr_dir, 'input_test.txt')
+input_file = os.path.join(curr_dir, 'test.txt')
 
 def parse() -> Tuple[List[str], List[int]]:
     with open(input_file, 'r', encoding='utf8') as f:
@@ -35,7 +35,9 @@ def is_valid_arrangement(record: List[str], q_pos: List[str], q_val: List[int],
     last = record[0]
     is_seq = last == '#'
     count = 1 if is_seq else 0
-    for i in record:
+    for idx, i in enumerate(record):
+        if idx == 0:
+            continue
         if i == '#':
             if is_seq:
                 count += 1
@@ -47,6 +49,9 @@ def is_valid_arrangement(record: List[str], q_pos: List[str], q_val: List[int],
                 actual.append(count)
             is_seq = False
 
+    if is_seq and count > 0:
+        actual.append(count)
+
     # print(control_s)
     # print(actual)
     return control_s == actual
@@ -57,7 +62,9 @@ def get_valid_arrangements(record: List[str], q_pos: List[str], control_s: List[
     for j in obj_iter:
         if is_valid_arrangement(record=record, q_pos=q_pos, q_val=list(j), control_s=control_s):
             res = res + 1
-
+    # print(f"{res} {record}")
+    # print(f"{control_s =}")
+    # print(f"{q_pos =}")
     return res
 
 def solve_1():
@@ -66,6 +73,7 @@ def solve_1():
     for i, record in enumerate(records):
         q_pos = get_q_mark_positions(records=record)
         res += get_valid_arrangements(record=record, q_pos=q_pos, control_s=nums[i])
+        print(i)
     print(res)
         # nums[i]
         # print(len(q_pos))
