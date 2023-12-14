@@ -112,6 +112,3 @@ def solve_2():
 if __name__ == '__main__':
     solve_1()
     solve_2()
-
-    # too low
-    # --> 5126, 6000
