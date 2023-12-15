@@ -7,7 +7,7 @@ import copy
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
 # input_file = os.path.join(curr_dir, 'test.txt')
-input_file = os.path.join(curr_dir, 'test.txt')
+input_file = os.path.join(curr_dir, 'input_test.txt')
 
 def parse() -> Tuple[List[List[str]], List[List[int]]]:
     with open(input_file, 'r', encoding='utf8') as f:
@@ -161,6 +161,7 @@ def check_how_many_var(record: List[str], nums: List[int]):
     # print(valid_pos)
     # exit(0)
     # print(list(itertools.product(*ranges)))
+    print(record)
     for l in itertools.product(*valid_pos):
         # print(l)
         # print('-------')
@@ -173,25 +174,28 @@ def check_how_many_var(record: List[str], nums: List[int]):
             res += 1
 
     # exit(0)
-    # print(res)
+    print(res)
+    if record == ['?', '?', '?', '?', '?', '?', '?', '?', '?', '?']:
+        exit(0)
+    print('-------')
     return res
 
 def solve_2():
     records, nums = parse()
 
-    records = [record + ['?'] + record
-               for record in records]
-    nums = [n + n for n in nums]
+    # records = [record + ['?'] + record
+    #            for record in records]
+    # nums = [n + n for n in nums]
     # print(records)
     # print(nums)
     # exit(0)
     res = 0
     for i, record in enumerate(records):
         res += check_how_many_var(record=record, nums=nums[i])
-        print(res)
+        # print(res)
     print(res)
 
 
 if __name__ == '__main__':
-    solve_1()
-    # solve_2()
+    # solve_1()
+    solve_2()
