@@ -71,7 +71,7 @@ def solve_2():
     res = 0
     for key, val in item_dic.items():
         i = 1
-        for k, v in val.items():
+        for _, v in val.items():
             res += (key + 1)*i*v
             i += 1
     print(res)
