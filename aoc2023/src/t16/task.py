@@ -143,11 +143,34 @@ def solve_1():
     start_pos = (1,0)
     s_i =Instruction(point=start_pos, direction=Direction.EAST)
     print(simulate(start_instr=s_i, matrix=m_offset, border=border))
-    # 68 incorrect
 
 
 def solve_2():
     matrix = parse()
+    offset = 1
+    border = 'b'
+    m_offset = get_matrix_with_offset(matrix=matrix, val=border, offset=offset)
+    res = 0
+    for tp in range(offset, matrix.shape[1]):
+        start_pos = (0,tp)
+        s_i =Instruction(point=start_pos, direction=Direction.SOUTH)
+        tmp = simulate(start_instr=s_i, matrix=m_offset, border=border)
+        res = max(tmp, res)
+        start_pos = (m_offset.shape[0]-1,tp)
+        s_i =Instruction(point=start_pos, direction=Direction.NORTH)
+        tmp = simulate(start_instr=s_i, matrix=m_offset, border=border)
+        res = max(tmp, res)
+
+    for tp in range(offset, matrix.shape[0]):
+        start_pos = (tp,0)
+        s_i =Instruction(point=start_pos, direction=Direction.EAST)
+        tmp = simulate(start_instr=s_i, matrix=m_offset, border=border)
+        res = max(tmp, res)
+        start_pos = (tp,m_offset.shape[1]-1)
+        s_i =Instruction(point=start_pos, direction=Direction.WEST)
+        tmp = simulate(start_instr=s_i, matrix=m_offset, border=border)
+        res = max(tmp, res)
+    print(res)
 
 if __name__ == '__main__':
     solve_1()
