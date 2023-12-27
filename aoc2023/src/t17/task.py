@@ -4,6 +4,7 @@ import os
 import pathlib
 import heapq
 from typing import List, Tuple
+from copy import deepcopy
 
 import numpy as np
 
@@ -50,14 +51,14 @@ class Instruction:
         self.point = point
         self.direction = direction
         self.value = value
-        self.path_history: List[Instruction] = []
+        self.path_history: List[Direction] = []
 
     def __eq__(self, obj):
         return isinstance(obj, Instruction) and (obj.point == self.point
                                                  and obj.direction == self.direction)
 
     def __hash__(self):
-        return hash((self.point, self.direction))
+        return hash((self.point, self.direction.name))
 
     def __lt__(self, other):
         return self.value < other.value
@@ -84,42 +85,61 @@ def bfs_with_weights(matrix: np.matrix, start_instr: Instruction, shape):
     q = []
     heapq.heappush(q, start_instr)
 
-    n_max = 10000
+    n_max = 999
 
     closest_m = np.zeros(shape=matrix.shape, dtype=int) + n_max
+
     closest_m[start_instr.point] = 0
+    dict_closest = {
+        Direction.EAST: deepcopy(closest_m),
+        Direction.WEST: deepcopy(closest_m),
+        Direction.SOUTH: deepcopy(closest_m),
+        Direction.NORTH: deepcopy(closest_m),
+    }
 
     while q:
         curr: Instruction = heapq.heappop(q)
 
-        if curr.point[0] == matrix.shape[0] and curr.point[1] == shape[1]:
+        if curr.point[0] == shape[0] and curr.point[1] == shape[1]:
+            print(curr.path_history)
+            print('---------------------------')
             n_max = closest_m[shape[0], shape[1]]
+        
+        # if curr.value > n_max:
+        #     continue
 
-        for direction in (curr.direction, get_next_left_dir(curr.direction),
-                          get_next_right_dir(curr.direction)):
+        for direction in [curr.direction, get_next_left_dir(curr.direction),
+                          get_next_right_dir(curr.direction)]:
             if len(curr.path_history) >= 3 and (
-                curr.path_history[-1].direction == curr.path_history[-2].direction) and (
-                    curr.path_history[-2].direction == curr.path_history[-3].direction
+                curr.path_history[-1] == curr.path_history[-2]) and (
+                    curr.path_history[-2] == curr.path_history[-3]
                 ):
-                if direction == curr.direction:
+                if direction == curr.path_history[-1]:
                     continue
 
             x = curr.point[1] + direction.value[1]
             y = curr.point[0] + direction.value[0]
             val = matrix[y, x]
 
-            new_instr = Instruction(point=(y,x), direction=direction, value=val)
-            new_instr.path_history = curr.path_history
-            new_instr.path_history.append(curr)
+            new_instr = Instruction(point=(y,x), direction=direction, value=val + curr.value)
+            new_instr.path_history = deepcopy(curr.path_history)
+            new_instr.path_history.append(curr.direction)
 
             # border
-            if val == -1 or (closest_m[y, x] <= val + closest_m[curr.point[0], curr.point[1]]):
+            if val == -1:
                 continue
-            closest_m[y, x] = val + closest_m[curr.point[0], curr.point[1]]
+            if dict_closest[direction][y, x] <= val + dict_closest[direction][curr.point]:
+                continue
+            dict_closest[direction][y, x] = val + dict_closest[direction][curr.point]
             # q.append(Node(x=x, y=y, value=val, path=curr.path + [(y,x)]))
             heapq.heappush(q, new_instr)
-
-    print(closest_m)
+       
+    # print(matrix)
+    # print(closest_m)
+    print(dict_closest[Direction.EAST])
+    print(dict_closest[Direction.WEST])
+    print(dict_closest[Direction.NORTH])
+    print(dict_closest[Direction.SOUTH])
     return closest_m[shape[0], shape[1]]
 
 def solve_1():
@@ -129,7 +149,7 @@ def solve_1():
     m_offset = get_matrix_with_offset(matrix=matrix, val=border, offset=offset)
     start_pos = (offset,offset)
     start_instr = Instruction(point=start_pos, direction=Direction.EAST, value=m_offset[start_pos])
-    start_instr.path_history.append(start_instr)
+    start_instr.path_history = []
     print(bfs_with_weights(matrix=m_offset, start_instr=start_instr, shape=matrix.shape))
 
 

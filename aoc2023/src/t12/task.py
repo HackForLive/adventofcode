@@ -4,6 +4,9 @@ import pathlib
 from typing import List, Tuple
 import itertools
 import copy
+from copy import deepcopy
+
+import numpy as np
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
 # input_file = os.path.join(curr_dir, 'test.txt')
@@ -176,7 +179,8 @@ def check_how_many_var(record: List[str], nums: List[int]):
     # exit(0)
     print(res)
     if record == ['?', '?', '?', '?', '?', '?', '?', '?', '?', '?']:
-        exit(0)
+        # exit(0)
+        pass
     print('-------')
     return res
 
@@ -192,10 +196,83 @@ def solve_2():
     res = 0
     for i, record in enumerate(records):
         res += check_how_many_var(record=record, nums=nums[i])
+        break
         # print(res)
     print(res)
+
+
+def get_posibilities(record: List[str], start: int, stop: int, num: int):
+    res = 0
+    if stop - start + 1 < num:
+        return res
+    for k in range(start, stop+1, num):
+        pos = True
+        for j in range(start, stop+1, 1):
+            if j < k:
+                if record[j] == '#':
+                    pos = False
+                    break
+            elif k <= j <= k + num:
+                if record[j] == '.':
+                    pos = False
+                    break
+            else:
+                if record[j] == '#':
+                    pos = False
+                    break
+        if pos:
+            res += 1
+    return res
+
+
+def get_posible_arrangements(record: List[str], nums: List[int]):
+    """
+    take s1,s2 index check only one part is present and return number of possible positions
+    iterate this for each part
+    . between each part
+
+    take all posibilities from memo
+    """
+    n = len(record)
+
+    memo = np.zeros(shape=(n,n))
+
+    start_idx = 0
+    for num in nums:
+        # tmp = deepcopy(memo)
+        for i in range(n):
+            if i < start_idx:
+                memo[i,j] = 0
+            for j in range(i, n):
+                if start_idx == 0:
+                    memo[i,j] = get_posibilities(record=record, start=i, stop=j, num=num)
+                else:
+                    if record[j-1] != '#':
+                        memo[i,j] = memo[0,j-2]*get_posibilities(record=record, start=i, stop=j, num=num)
+                    else:
+                        memo[i,j] = 0
+                    print('hah')
+                print(memo)
+        exit(0)
+        start_idx = num + 1
+
+        # break
+    # print(memo)
+    return 0
+
+
+def solve_2_improved():
+    records, nums = parse()
+
+    res = 0
+    for idr, record in enumerate(records):
+        res += get_posible_arrangements(record=record, nums=nums[idr])
+        break
+    print(res)
+
 
 
 if __name__ == '__main__':
     # solve_1()
     solve_2()
+    solve_2_improved()
