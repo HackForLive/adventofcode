@@ -15,7 +15,7 @@ with open(input_file, mode='r', encoding='utf-8') as f:
     records = [p[0] for p in recs]
     numbs = [[int(o) for o in p[1].split(',')] for p in recs]
 
-memo = np.zeros(shape=(1000,1000))
+memo = np.zeros(shape=(1000,1000), dtype=int) - 1
 
 def recurse(idx, idn, record, nums):
     if idn == len(nums):
@@ -41,24 +41,57 @@ def recurse(idx, idn, record, nums):
                 break
         if is_valid:
             if idn == len(nums) - 1:
-                take_n = recurse(idx + nums[idn], idn + 1, record, nums)
+                if memo[idx + nums[idn], idn + 1] == -1:
+                    take_n = recurse(idx + nums[idn], idn + 1, record, nums)
+                    memo[idx + nums[idn], idn + 1] = take_n
+                else:
+                    take_n = memo[idx + nums[idn], idn + 1]
+
 
             if idx + nums[idn] < len(record) and record[idx + nums[idn]] != '#':
-                take_n = recurse(idx + nums[idn] + 1, idn + 1, record, nums)
+                if memo[idx + nums[idn] + 1, idn + 1] == -1:
+                    take_n = recurse(idx + nums[idn] + 1, idn + 1, record, nums)
+                    memo[idx + nums[idn] + 1, idn + 1] = take_n
+                else:
+                    take_n = memo[idx + nums[idn] + 1, idn + 1]
 
     # do not take
     if idx < len(record) and record[idx] != '#':
-        dont_take = recurse(idx+1, idn, record, nums)
+        if memo[idx + 1, idn] == -1:
+            dont_take = recurse(idx+1, idn, record, nums)
+            memo[idx + 1, idn] = dont_take
+        else:
+            dont_take = memo[idx + 1, idn]
     return take_n + dont_take
+
+def solve_1():
+    res = 0
+    for idr, r in enumerate(records):
+        # print(r)
+        # print(numbs[idr])
+        global memo
+        memo = np.zeros(shape=(30,10), dtype=int) - 1
+        # print(memo)
+        curr = recurse(0, 0, r,  numbs[idr])
+        # print(curr)
+        # print(memo)
+        res += curr
+    print(res)
 
 def solve_2():
     res = 0
     for idr, r in enumerate(records):
-        print(r)
-        print(numbs[idr])
-        curr = recurse(0, 0, r,  numbs[idr])
-        print(curr)
+        numbs_l = numbs[idr] * 5
+        r_l = ((r + '?')*5)[:-1]
+        # print(r_l)
+        # print(numbs_l)
+        global memo
+        memo = np.zeros(shape=(120,100), dtype=np.longlong) - 1
+        # print(memo)
+        curr = recurse(0, 0, r_l,  numbs_l)
+        # print(curr)
         res += curr
     print(res)
 
+solve_1()
 solve_2()
