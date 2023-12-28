@@ -1,278 +1,87 @@
-from __future__ import annotations
 import os
 import pathlib
-from typing import List, Tuple
-import itertools
-import copy
-from copy import deepcopy
 
 import numpy as np
 
+records = []
+numbs = []
+
 curr_dir = pathlib.Path(__file__).parent.resolve()
-# input_file = os.path.join(curr_dir, 'test.txt')
-input_file = os.path.join(curr_dir, 'input_test.txt')
+input_file = os.path.join(curr_dir, 'test.txt')
 
-def parse() -> Tuple[List[List[str]], List[List[int]]]:
-    with open(input_file, 'r', encoding='utf8') as f:
-        nums = []
-        records = []
-        for line in f:
-            l, r = line.strip().split(' ')
+with open(input_file, mode='r', encoding='utf-8') as f:
+    recs = [line.strip().split(' ') for line in f]
+    records = [p[0] for p in recs]
+    numbs = [[int(o) for o in p[1].split(',')] for p in recs]
 
-            records.append(list(l))
-            nums.append([int(n) for n in r.strip().split(',')])
-        return records, nums
+memo = None
 
-def get_q_mark_positions(records: List[str]) -> List[str]:
-    return [idx for idx, i in enumerate(records) if i == '?']
+def recurse(idx, idn, record, nums):
+    if idn == len(nums):
+        if idx <= len(record):
+            for i in range(idx, len(record)):
+                if record[i]=='#':
+                    return 0
+            return 1
+        return 0
+
+    if idx >= len(record):
+        return 0
+
+    take_n = 0
+    dont_take = 0
+
+    # take
+    if idx + nums[idn] - 1 < len(record):
+        is_valid = True
+        for i in range(idx, idx + nums[idn]):
+            if record[i] == '.':
+                is_valid = False
+                break
+        if is_valid:
+            if idn == len(nums) - 1:
+                if memo[idx + nums[idn], idn + 1] == -1:
+                    take_n = recurse(idx + nums[idn], idn + 1, record, nums)
+                    memo[idx + nums[idn], idn + 1] = take_n
+                else:
+                    take_n = memo[idx + nums[idn], idn + 1]
 
 
-def is_valid_arrangement(record: List[str], q_pos: List[str], q_val: List[int],
-                         control_s: List[int]) -> bool:
-    record = copy.deepcopy(record)
+            if idx + nums[idn] < len(record) and record[idx + nums[idn]] != '#':
+                if memo[idx + nums[idn] + 1, idn + 1] == -1:
+                    take_n = recurse(idx + nums[idn] + 1, idn + 1, record, nums)
+                    memo[idx + nums[idn] + 1, idn + 1] = take_n
+                else:
+                    take_n = memo[idx + nums[idn] + 1, idn + 1]
 
-    for i, pos in enumerate(q_pos):
-        record[pos] = '#' if q_val[i] else '.'
-
-    # print(record)
-    actual = []
-    last = record[0]
-    is_seq = last == '#'
-    count = 1 if is_seq else 0
-    for idx, i in enumerate(record):
-        if idx == 0:
-            continue
-        if i == '#':
-            if is_seq:
-                count += 1
-            else:
-                count = 1
-            is_seq = True
+    # do not take
+    if idx < len(record) and record[idx] != '#':
+        if memo[idx + 1, idn] == -1:
+            dont_take = recurse(idx+1, idn, record, nums)
+            memo[idx + 1, idn] = dont_take
         else:
-            if is_seq:
-                actual.append(count)
-            is_seq = False
-
-    if is_seq and count > 0:
-        actual.append(count)
-
-    # print(control_s)
-    # print(actual)
-    return control_s == actual
-            
-def get_valid_arrangements(record: List[str], q_pos: List[str], control_s: List[int]) -> int:
-    obj_iter = itertools.product([0,1], repeat=len(q_pos))
-    res = 0
-    for j in obj_iter:
-        if is_valid_arrangement(record=record, q_pos=q_pos, q_val=list(j), control_s=control_s):
-            res = res + 1
-    # print(f"{res} {record}")
-    # print(f"{control_s =}")
-    # print(f"{q_pos =}")
-    return res
+            dont_take = memo[idx + 1, idn]
+    return take_n + dont_take
 
 def solve_1():
-    records, nums = parse()
     res = 0
-    for i, record in enumerate(records):
-        q_pos = get_q_mark_positions(records=record)
-        res += get_valid_arrangements(record=record, q_pos=q_pos, control_s=nums[i])
-        print(i)
+    for idr, r in enumerate(records):
+        global memo
+        memo = np.zeros(shape=(30,10), dtype=int) - 1
+        curr = recurse(0, 0, r,  numbs[idr])
+        res += curr
     print(res)
-        # nums[i]
-        # print(len(q_pos))
-        # a = max(a, len(q_pos))
-        # print()
-    # print(a)
-    #
-
-def is_position_valid(record: str, start: int, length: int):
-    # print(f"{start =}, {length = }")
-    for i in range(start, start+length, 1):
-        # print(i)
-        # print(f"{i =}")
-        if record[i] == '.':
-            return False
-    if start > 0 and record[start - 1] == '#':
-        return False
-    if start + length < len(record) - 1 and record[start + length] == '#':
-        return False
-    return True
-    # in position all chars must be # or ? and on the edges .
-
-def get_valid_positions(record: str, ranges: List[range], nums: List[int]) -> List[List[int]]:
-    res = []
-    for idx, n in enumerate(nums):
-        r = ranges[idx]
-        tmp = []
-        # print(f"{r.start =}, {r.stop+1 =}")
-        for j in range(r.start, r.stop+1, 1):
-            if r.stop +1 - j < nums[idx]:
-                break
-            # print(f"{j =}")
-            if is_position_valid(record=record, start=j, length=nums[idx]):
-                tmp.append((j, j + nums[idx]-1))
-        res.append(tmp)
-    return res
-
-def get_valid_ranges(record: List[str], nums: List[int]) -> List[range]:
-    res = []
-    start_n = []
-    end_n = []
-
-    prefix: int = 0
-    suffix: int = len(record) - 1
-    for i in range(0, len(nums), 1):
-        # print(f"{prefix =}, {suffix =}")
-        start_n.append(prefix)
-        end_n.append(suffix)
-        prefix += nums[i] + 1
-        suffix -= nums[len(nums) - 1 - i] + 1
-    end_n = list(reversed(end_n))
-
-    for i in range(0, len(nums), 1):
-        res.append(range(start_n[i], end_n[i]))
-    return res
-
-def validate_final_form(record: List[str], form: List[Tuple[int, int]]):
-    # print(record)
-    for i in range(form[0][0]):
-        if record[i] == '#':
-            return False
-
-    for j, f in enumerate(form):
-        if j > 0:
-            for k in range(form[j-1][1]+1, form[j][0]):
-                if record[k] == '#':
-                    return False
-                
-    for i in range(form[-1][1]+1, len(record)):
-        if record[i] == '#':
-            # print(f"{i =}, {form =} {form[-1][1] =} {len(record) =}")
-            return False
-    return True
-
-
-
-def check_how_many_var(record: List[str], nums: List[int]):
-    res = 0
-    # smart way - not ranges arrays as some values may not be valid (use only valid ones)
-    ranges = get_valid_ranges(record=record, nums=nums)
-    # print(ranges)
-
-    valid_pos = get_valid_positions(record=record, ranges=ranges, nums=nums)
-    # print(valid_pos)
-    # exit(0)
-    # print(list(itertools.product(*ranges)))
-    print(record)
-    for l in itertools.product(*valid_pos):
-        # print(l)
-        # print('-------')
-        is_valid = True
-        for idx, i in enumerate(l):
-            if idx > 0 and l[idx][0] - 1 <= l[idx - 1][1]:
-                is_valid = False
-        if is_valid and validate_final_form(record=record, form=l):
-            # print(l)
-            res += 1
-
-    # exit(0)
-    print(res)
-    if record == ['?', '?', '?', '?', '?', '?', '?', '?', '?', '?']:
-        # exit(0)
-        pass
-    print('-------')
-    return res
 
 def solve_2():
-    records, nums = parse()
-
-    # records = [record + ['?'] + record
-    #            for record in records]
-    # nums = [n + n for n in nums]
-    # print(records)
-    # print(nums)
-    # exit(0)
     res = 0
-    for i, record in enumerate(records):
-        res += check_how_many_var(record=record, nums=nums[i])
-        break
-        # print(res)
+    for idr, r in enumerate(records):
+        numbs_l = numbs[idr] * 5
+        r_l = ((r + '?')*5)[:-1]
+        global memo
+        memo = np.zeros(shape=(120,100), dtype=np.longlong) - 1
+        curr = recurse(0, 0, r_l,  numbs_l)
+        res += curr
     print(res)
 
-
-def get_posibilities(record: List[str], start: int, stop: int, num: int):
-    res = 0
-    if stop - start + 1 < num:
-        return res
-    for k in range(start, stop+1, num):
-        pos = True
-        for j in range(start, stop+1, 1):
-            if j < k:
-                if record[j] == '#':
-                    pos = False
-                    break
-            elif k <= j <= k + num:
-                if record[j] == '.':
-                    pos = False
-                    break
-            else:
-                if record[j] == '#':
-                    pos = False
-                    break
-        if pos:
-            res += 1
-    return res
-
-
-def get_posible_arrangements(record: List[str], nums: List[int]):
-    """
-    take s1,s2 index check only one part is present and return number of possible positions
-    iterate this for each part
-    . between each part
-
-    take all posibilities from memo
-    """
-    n = len(record)
-
-    memo = np.zeros(shape=(n,n))
-
-    start_idx = 0
-    for num in nums:
-        # tmp = deepcopy(memo)
-        for i in range(n):
-            if i < start_idx:
-                memo[i,j] = 0
-            for j in range(i, n):
-                if start_idx == 0:
-                    memo[i,j] = get_posibilities(record=record, start=i, stop=j, num=num)
-                else:
-                    if record[j-1] != '#':
-                        memo[i,j] = memo[0,j-2]*get_posibilities(record=record, start=i, stop=j, num=num)
-                    else:
-                        memo[i,j] = 0
-                    print('hah')
-                print(memo)
-        exit(0)
-        start_idx = num + 1
-
-        # break
-    # print(memo)
-    return 0
-
-
-def solve_2_improved():
-    records, nums = parse()
-
-    res = 0
-    for idr, record in enumerate(records):
-        res += get_posible_arrangements(record=record, nums=nums[idr])
-        break
-    print(res)
-
-
-
-if __name__ == '__main__':
-    # solve_1()
-    solve_2()
-    solve_2_improved()
+solve_1()
+solve_2()
