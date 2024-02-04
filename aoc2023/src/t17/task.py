@@ -1,15 +1,15 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from enum import Enum
 import os
 import pathlib
 import heapq
-from typing import List, Tuple
-from copy import deepcopy
 
 import numpy as np
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
-input_file = os.path.join(curr_dir, 'input_test.txt')
+input_file = os.path.join(curr_dir, 'test.txt')
+
 
 class Direction(Enum):
     """
@@ -23,6 +23,46 @@ class Direction(Enum):
     @classmethod
     def get_name_by_value(cls,val):
         return { v:k for k,v in dict(vars(cls)).items() if isinstance(v,list)}.get(val,None)
+
+
+@dataclass
+class Step:
+    """
+    Current step identified by
+    position (x,y)
+    current direction
+    current heat loss
+    current steps (incremented by same direction)
+    """
+    x: int
+    y: int
+    direction: Direction
+    heat_loss: int
+    steps: int
+
+    def __lt__(self, other):
+        return self.heat_loss < other.heat_loss
+
+
+def cache_key(step: Step) -> int:
+    x, y, direction, steps = step.x, step.y, get_number_from_direction(step.direction), step.steps
+
+    # return (x << (8 + 3 + 4)) | (y << (3 + 4)) | (dir << 4) | steps; // bit shift is safer
+    c_key = (((x + 1) * 37 + (y + 1) * 17) * 5 + direction) * 9 + steps
+    return c_key
+
+
+def get_number_from_direction(d: Direction):
+    if d == Direction.EAST:
+        return 1
+    if d == Direction.NORTH:
+        return 2
+    if d == Direction.WEST:
+        return 3
+    if d == Direction.SOUTH:
+        return 4
+    raise ValueError('Unexpected')
+
 
 def get_next_left_dir(direction: Direction):
     """
@@ -49,27 +89,6 @@ def get_next_right_dir(direction: Direction):
     return directions[direction]
 
 
-class Node:
-    prev: Direction
-    count: int
-    def __init__(self, point: Tuple[int, int], direction: Direction, prev: Node) -> None:
-        self.point = point
-        self.direction = direction
-        self.prev = prev
-
-
-    # def __eq__(self, obj):
-    #     return isinstance(obj, Node) and (obj.point == self.point
-    #                                              and obj.direction == self.direction
-    #                                              and obj.value == self.value)
-
-    # def __hash__(self):
-    #     return hash((self.point, self.direction.name, self.value))
-
-    # def __lt__(self, other):
-    #     return self.value < other.value
-
-
 def get_matrix_with_offset(matrix: np.matrix, val: int, offset: int)  -> np.matrix:
     rows, cols = offset, offset
     offset_matrix = np.full((2*rows+matrix.shape[0], 2*cols+matrix.shape[1]), fill_value=val,
@@ -77,86 +96,73 @@ def get_matrix_with_offset(matrix: np.matrix, val: int, offset: int)  -> np.matr
     offset_matrix[rows:rows+matrix.shape[0], cols:cols+matrix.shape[1]] = matrix
     return offset_matrix
 
+
 def parse():
     with open(input_file, 'r', encoding='utf8') as f:
         arr_2d = np.array([[int(number) for number in line.strip()] for line in f.readlines()])
         matrix = np.asmatrix(arr_2d)
         return matrix
 
+def get_directions(d: Direction):
+    return [d, get_next_left_dir(d), get_next_right_dir(d)]
 
-def get_number_from_direction(d: Direction):
-    if d == Direction.EAST:
-        return 0
-    if d == Direction.NORTH:
-        return 1
-    if d == Direction.WEST:
-        return 2
-    if d == Direction.SOUTH:
-        return 3
-    raise ValueError('Unexpected')
-
-
-def get_label(n: int, node: Node, offset: int):
-    return (node.point[0]-offset)*n + (node.point[1]-offset)
-
-
-def shortest_path(m: np.matrix, src: Node):
-    # Create a priority queue to store vertices that
-    # are being preprocessed
+def shortest_path(m: np.matrix, min_steps: int, max_steps: int, offset: int):
+    start_east = Step(offset, offset, Direction.EAST, 0, 0)
+    start_south = Step(offset, offset, Direction.SOUTH, 0, 0)
     pq = []
-    heapq.heappush(pq, (0, src))
+    heapq.heappush(pq, start_south)
+    heapq.heappush(pq, start_east)
 
-    # distance map
-    dist = np.ones(shape=m.shape, dtype=float) * float('inf')
+    # visited
+    visited = set()
 
-    # distances as infinite (INF)
-    # dist = [float('inf')] * n
-    # previous node
-    # prev = [float('inf')] * n
-
-    dist[src.point] = 0
+    visited.add(cache_key(start_east))
+    visited.add(cache_key(start_south))
 
     while pq:
-        # The first vertex in pair is the minimum distance
-        # vertex, extract it from priority queue.
-        # vertex label is stored in second of pair
-        d, u = heapq.heappop(pq)
+        u = heapq.heappop(pq)
 
-        # 'i' is used to get all adjacent vertices of a
-        # vertex
-        for c_dir in [u.direction, get_next_left_dir(u.direction),
-                          get_next_right_dir(u.direction)]:
+        # get the right bottom element
+        if u.x == m.shape[1] - offset*2 and u.y == m.shape[1] - offset*2:
+            return u.heat_loss
 
-            y = u.point[0] + c_dir.value[0]
-            x = u.point[1] + c_dir.value[1]
-            p = (y, x)
-            weight = m[p]
-            # border
+        for c_dir in get_directions(u.direction):
+            ny = u.y + c_dir.value[0]
+            nx = u.x + c_dir.value[1]
+            weight = m[ny, nx]
+
+            # border case
             if weight == -1:
                 continue
 
-            # If there is shorted path to v through u.
-            if dist[p] > dist[u.point] + weight:
-                # Updating distance of v
-                dist[p] = dist[u.point] + weight
-                # prev[p] = u
-                heapq.heappush(pq, (dist[p], Node(point=p, direction=c_dir, prev=u)))
+            # handle minimum steps to turn
+            if u.steps < min_steps and c_dir != u.direction:
+                continue
 
-    # Print shortest distances stored in dist[]
-    print(dist)
-    print(dist[-2,-2])
+            # handle too many steps in the same direction
+            if u.steps > max_steps - 1 and c_dir == u.direction:
+                continue
 
+            next_step: Step = Step(
+                nx,
+                ny,
+                c_dir,
+                (u.heat_loss + weight),
+                (u.steps + 1 if u.direction == c_dir else 1)
+            )
+            if not cache_key(next_step) in visited:
+                heapq.heappush(pq, next_step)
+                visited.add(cache_key(next_step))
+    return -1
 
 
 def solve_1():
     matrix = parse()
     offset = 1
     border = -1
-    m_offset = get_matrix_with_offset(matrix=matrix, val=border, offset=offset)
-    start_pos = (offset, offset)
-    print(start_pos)
-    src_node = Node(point=start_pos, direction=Direction.EAST, prev=None)
-    shortest_path(m=m_offset, src=src_node)
+    matrix = get_matrix_with_offset(matrix=matrix, val=border, offset=offset)
+    # print(matrix)
+    print(shortest_path(m=matrix, min_steps=1, max_steps=3, offset=1))
 
 
 if __name__ == '__main__':
