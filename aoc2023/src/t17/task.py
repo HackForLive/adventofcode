@@ -124,6 +124,8 @@ def shortest_path(m: np.matrix, min_steps: int, max_steps: int, offset: int):
 
         # get the right bottom element
         if u.x == m.shape[1] - offset*2 and u.y == m.shape[1] - offset*2:
+            if u.steps < min_steps:
+                continue
             return u.heat_loss
 
         for c_dir in get_directions(u.direction):
@@ -165,6 +167,15 @@ def solve_1():
     print(shortest_path(m=matrix, min_steps=1, max_steps=3, offset=1))
 
 
+def solve_2():
+    matrix = parse()
+    offset = 1
+    border = -1
+    matrix = get_matrix_with_offset(matrix=matrix, val=border, offset=offset)
+    # print(matrix)
+    print(shortest_path(m=matrix, min_steps=4, max_steps=10, offset=1))
+
+
 if __name__ == '__main__':
-    solve_1()
-    # solve_2()
+    # solve_1()
+    solve_2()
