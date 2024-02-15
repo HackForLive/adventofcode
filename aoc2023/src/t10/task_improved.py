@@ -8,7 +8,7 @@ from typing import List, NamedTuple, Tuple
 import numpy as np
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
-input_file = os.path.join(curr_dir, 'input2_1.txt')
+input_file = os.path.join(curr_dir, 'test.txt')
 
 
 class Direction(Enum):
@@ -85,7 +85,7 @@ def bfs(token: str, start_idx: Tuple[int, int], matrix: np.numpy) -> Tuple[
 
         y = curr.y + curr.direction.value[0]
         x = curr.x + curr.direction.value[1]
-        
+
         pipe = matrix[y, x]
 
         if pipe in ['b', '.']:
@@ -167,6 +167,27 @@ def solve_1():
             break
 
 
+def points_inside(area: float, boarder_pts: int):
+    i_pts = area - boarder_pts/2 + 1
+    return i_pts
+
+
+def polygon_area(nodes: List[Node]):
+    # Initialize area
+    area = 0.0
+
+    polygon_pts = [(m.y, m.x) for m in nodes]
+    n = len(polygon_pts)
+
+    # Calculate value of shoelace formula
+    j = n - 1
+    for i in range(0,n):
+        area += (polygon_pts[j][1] + polygon_pts[i][1]) * (polygon_pts[j][0] - polygon_pts[i][0])
+        j = i   # j is previous vertex to i
+
+    # Return absolute value
+    return int(abs(area / 2.0))
+
 def count_points_inside(matrix: np.matrix, nodes: List[Node]) -> int:
     x_min = min((m.x for m in nodes))
     x_max = max((m.x for m in nodes))
@@ -175,20 +196,41 @@ def count_points_inside(matrix: np.matrix, nodes: List[Node]) -> int:
 
     board_points = set({(m.y, m.x) for m in nodes})
 
+    # improve !!!
+    def get_key(x: int, y: int):
+        for i, n in enumerate(nodes):
+            if n.x == x and n.y == y:
+                return i
+
     total_points_inside = 0
-    # on_the_board = False
-    for y in range(y_min, y_max+1, 1):
+
+    for y in range(y_min+1, y_max, 1):
+        on_the_board = False
         ray_switch = 0
         for x in range(x_min, x_max+1, 1):
             # get the board
             if (y,x) in board_points:
-                # if not on_the_board:
-                ray_switch += 1
-                # on_the_board = True
+                # if y == 8:
+                #     print(f"{y} - ({y}, {x}) - {on_the_board=}")
+                if not on_the_board:
+                    ray_switch += 1
+                    on_the_board = True
+                else:
+                    # are the pipes connected - with previous
+                    # print((x, y))
+                    # if y == 8:
+                    #     print(f"{get_key(x=x-1, y=y)} - {get_key(x=x, y=y)}")
+                    if abs(get_key(x=x-1, y=y)-get_key(x=x, y=y)) > 1.1:
+                        ray_switch += 1
+
+                # if y == 8:
+                #     print(f"{y} - {ray_switch=}")
+
                 continue
 
-            # on_the_board = False
+            on_the_board = False
             if ray_switch%2 == 1:
+                # print((y, x))
                 total_points_inside +=1
 
     return total_points_inside
@@ -207,8 +249,11 @@ def solve_2():
         is_cycle, _, memo = bfs(token=s, start_idx=start_idx, matrix=matrix)
 
         if is_cycle:
-            print(count_points_inside(
-                matrix=matrix, nodes=memo[:-1]))
+            # print(count_points_inside(
+            #     matrix=matrix, nodes=memo[:-1]))
+            area = polygon_area(nodes=memo)
+            ip = points_inside(area=area, boarder_pts=len(memo[:-1]))
+            print(ip)
             break
 
 if __name__ == '__main__':
