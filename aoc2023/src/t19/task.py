@@ -1,8 +1,11 @@
+from collections import deque 
+
 from dataclasses import dataclass, field
 from enum import Enum
 import pathlib
 import os
 from typing import List, Tuple
+import copy
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
 
@@ -12,6 +15,18 @@ class Item:
     m: int
     a: int
     s: int
+
+
+@dataclass
+class ItemRange:
+    x_min: int
+    x_max: int
+    m_min: int
+    m_max: int
+    a_min: int
+    a_max: int
+    s_min: int
+    s_max: int
 
 
 class Result(Enum):
@@ -93,12 +108,23 @@ class WorkFlow():
         self._name = name
         self._rules = rules
 
+    @property
+    def rules(self):
+        return self._rules
+
     def execute(self, item: Item) -> ResultData:
         for rule in self._rules:
             res: ResultData = rule.execute(item=item)
             if res.result == Result.ROUTE and res.data is None:
                 continue
             return res
+
+
+@dataclass
+class ItemRangeNode:
+    item_range: ItemRange
+    work_flow_name: str
+    rule_id: int
 
 
 def parse(input_file: str):
@@ -127,7 +153,7 @@ def parse(input_file: str):
         return items, work_flows
 
 
-def solve_1(in_f: str):
+def solve_1(in_f: str) -> int:
     items, work_flows = parse(input_file=in_f)
 
     i_r = []
@@ -142,10 +168,115 @@ def solve_1(in_f: str):
         if res_data.result == Result.ACCEPTED:
             i_r.append(item)
 
-    print(sum(k.x + k.m + k.a + k.s for k in i_r))
+    return sum(k.x + k.m + k.a + k.s for k in i_r)
+
+def solve_2(in_f: str) -> int:
+    _, work_flows = parse(input_file=in_f)
+
+    stack = deque()
+    start_item = ItemRange(
+        x_min=1, x_max=4000,
+        m_min=1, m_max=4000,
+        a_min=1, a_max=4000,
+        s_min=1, s_max=4000,
+    )
+    node = ItemRangeNode(
+        item_range=start_item,
+        work_flow_name='in',
+        rule_id=0
+    )
+    stack.append(node)
+
+    res: List[ItemRange] = []
+
+    while stack:
+        curr: ItemRangeNode = stack.pop()
+
+        rule = work_flows[curr.work_flow_name][curr.rule_id]
+
+        if isinstance(rule, RouteWithConditionRule):
+
+            if '>' in rule._condition:
+                l, v = rule._condition.split('>')
+                mi = getattr(curr.item_range, f'{l}_min')
+                ma = getattr(curr.item_range, f'{l}_max')
+
+                "l > v"
+                if ma > int(v):
+                    ir = copy.deepcopy(curr.item_range)
+                    setattr(ir, f'{l}_min', int(v) + 1)
+                    if isinstance(rule._rule, AcceptedRule):
+                        res.append(ir)
+                    elif isinstance(rule._rule, RouteToWorkFlowRule):
+                        node = ItemRangeNode(
+                            item_range=ir,
+                            work_flow_name=rule._rule._work_flow_name,
+                            rule_id=0
+                        )
+                        stack.append(node)
+                if mi <= int(v):
+                    ir = copy.deepcopy(curr.item_range)
+                    setattr(ir, f'{l}_max', int(v))
+                    node = ItemRangeNode(
+                        item_range=ir,
+                        work_flow_name=curr.work_flow_name,
+                        rule_id=curr.rule_id+1
+                    )
+                    stack.append(node)
+            elif '<' in rule._condition:
+                l, v = rule._condition.split('<')
+                mi = getattr(curr.item_range, f'{l}_min')
+                ma = getattr(curr.item_range, f'{l}_max')
+
+                "l < v"
+                if mi < int(v):
+                    ir = copy.deepcopy(curr.item_range)
+                    setattr(ir, f'{l}_max', int(v) - 1)
+                    if isinstance(rule._rule, AcceptedRule):
+                        res.append(ir)
+                    elif isinstance(rule._rule, RouteToWorkFlowRule):
+                        node = ItemRangeNode(
+                            item_range=ir,
+                            work_flow_name=rule._rule._work_flow_name,
+                            rule_id=0
+                        )
+                        stack.append(node)
+                if ma >= int(v):
+                    ir = copy.deepcopy(curr.item_range)
+                    setattr(ir, f'{l}_min', int(v))
+                    node = ItemRangeNode(
+                        item_range=ir,
+                        work_flow_name=curr.work_flow_name,
+                        rule_id=curr.rule_id+1
+                    )
+                    stack.append(node)
+            else:
+                raise ValueError('Unxpected')
+        elif isinstance(rule, RouteToWorkFlowRule):
+            node = ItemRangeNode(
+                item_range=curr.item_range,
+                work_flow_name=rule._work_flow_name,
+                rule_id=0
+            )
+            stack.append(node)
+        elif isinstance(rule, AcceptedRule):
+            res.append(curr.item_range)
+    # print(res)
+    return sum(
+        [(r.x_max-r.x_min+1)*(r.m_max-r.m_min+1)*(r.a_max-r.a_min+1)*(r.s_max-r.s_min+1) 
+         for r in res])
 
 if __name__ == '__main__':
-    # infile = os.path.join(curr_dir, 'input_test.txt')
-    # solve_1(in_f=infile)
     infile = os.path.join(curr_dir, 'test.txt')
-    solve_1(in_f=infile)
+    res_1 = solve_1(in_f=infile)
+    if res_1 == 362930:
+        print(f"Correct answer: {res_1}")
+    else:
+        print('Wrong answer')
+
+    res_2 = solve_2(in_f=os.path.join(curr_dir, 'test.txt'))
+
+    if res_2 == 116365820987729:
+        print(f"Correct answer: {res_2}")
+    else:
+        print('Wrong answer')
