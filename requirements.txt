@@ -1,4 +1,4 @@
 numpy
-pylint
+ruff
 line_profiler
 pytest
