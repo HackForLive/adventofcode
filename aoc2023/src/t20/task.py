@@ -4,6 +4,7 @@ from abc import abstractmethod, ABCMeta
 import pathlib
 import os
 from enum import Enum, auto
+from time import sleep
 from typing import List
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
@@ -26,7 +27,11 @@ class ModuleInterface(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def receive(self, pulse: Pulse):
+    def get_name(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def receive(self, pulse: Pulse, sender_name: str):
         raise NotImplementedError
 
     @abstractmethod
@@ -49,12 +54,15 @@ class FlipFlopModule(ModuleInterface):
         self._state = state
         self._pulse = Pulse.NONE
 
-    def receive(self, pulse: Pulse):
+    def get_name(self) -> str:
+        return self._name
+
+    def receive(self, pulse: Pulse, sender_name: str):
         if pulse == Pulse.HIGH:
             self._pulse = Pulse.NONE
         if pulse == Pulse.LOW:
-            self._state[self._name] = not self._state
-            self._pulse = Pulse.HIGH if self._state else Pulse.LOW
+            self._state[self._name] = not self._state[self._name]
+            self._pulse = Pulse.HIGH if self._state[self._name] else Pulse.LOW
 
     def send(self):
         return self._pulse
@@ -72,12 +80,16 @@ class ConjuctionModule(ModuleInterface):
         self._state = state
         self._pulse = Pulse.NONE
 
-    def receive(self, pulse: Pulse):
+    def get_name(self) -> str:
+        return self._name
+
+    def receive(self, pulse: Pulse, sender_name: str):
         # update state??
-        self._pulse = Pulse.HIGH
+        self._state[self._name][sender_name] = pulse == Pulse.HIGH
+        self._pulse = Pulse.LOW
         for _ ,v in self._state[self._name].items():
-            if v == 0:
-                self._pulse = Pulse.LOW
+            if not v:
+                self._pulse = Pulse.HIGH
                 break
 
     def send(self):
@@ -93,7 +105,10 @@ class BroadcastModule(ModuleInterface):
         self._state = state
         self._pulse = Pulse.NONE
 
-    def receive(self, pulse: Pulse):
+    def get_name(self) -> str:
+        return self._name
+
+    def receive(self, pulse: Pulse, sender_name: str):
         self._pulse = pulse
 
     def send(self):
@@ -122,13 +137,13 @@ def parse(input_file: str):
 
             if r == 'broadcaster':
                 module=r
-                states[module]=0
+                states[module]=False
                 blue_prints[module]=BroadcastModule
             else:
                 m_type = r[0]
                 module = r[1:]
                 if m_type == '%':
-                    states[module] = 0
+                    states[module] = False
                     blue_prints[module]=FlipFlopModule
                 if m_type == '&':
                     # remember conjunctions
@@ -142,7 +157,7 @@ def parse(input_file: str):
     for key, val in work_flows.items():
         for v in val:
             if v in conjunctions:
-                states[v][key] = 0
+                states[v][key] = False
 
 
     print(work_flows)
@@ -153,7 +168,43 @@ def parse(input_file: str):
 
 def solve_1(in_f: str) -> int:
     work_flows, states, blue_prints = parse(input_file=in_f)
-    return 0
+
+    low_signal_c = 0
+    high_signal_c = 0
+    
+    for i in range(1000):
+        start = blue_prints['broadcaster'](name='broadcaster', state=states)
+        q = deque()
+        q.append(start)
+        start.receive(pulse=Pulse.LOW, sender_name='button')
+        low_signal_c += 1
+        pulse = None
+
+        while q:
+            module = q.popleft()
+            pulse = module.send()
+            if pulse == Pulse.NONE:
+                continue
+
+            receivers = work_flows[module.get_name()]
+            # print(module.get_name())
+            # print(pulse)
+            # print(receivers)
+            # print(states)
+            if pulse == Pulse.HIGH:
+                high_signal_c += len(receivers)
+            else:
+                low_signal_c += len(receivers)
+            for receiver in receivers:
+                if receiver not in blue_prints:
+                    continue
+                r = blue_prints[receiver](name=receiver, state=states)
+                r.receive(pulse=pulse, sender_name=module.get_name())
+                q.append(r)
+            # sleep(.2)
+        print(f"{high_signal_c =}")
+        print(f"{low_signal_c =}")
+    return high_signal_c*low_signal_c
 
 
 def solve_2(in_f: str) -> int:
@@ -161,9 +212,9 @@ def solve_2(in_f: str) -> int:
 
 
 if __name__ == '__main__':
-    infile = os.path.join(curr_dir, 'test.txt')
+    infile = os.path.join(curr_dir, 'input.txt')
     res_1 = solve_1(in_f=infile)
-    if res_1 == 362930:
+    if res_1 == 681194780:
         print(f"Correct answer: {res_1}")
     else:
-        print('Wrong answer')
+        print(f'Wrong answer: {res_1}')
