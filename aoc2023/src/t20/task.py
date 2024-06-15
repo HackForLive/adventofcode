@@ -160,9 +160,9 @@ def parse(input_file: str):
                 states[v][key] = False
 
 
-    print(work_flows)
-    print(states)
-    print(blue_prints)
+    # print(work_flows)
+    # print(states)
+    # print(blue_prints)
     return work_flows, states, blue_prints
 
 
@@ -171,8 +171,8 @@ def solve_1(in_f: str) -> int:
 
     low_signal_c = 0
     high_signal_c = 0
-    
-    for i in range(1000):
+
+    for _ in range(1000):
         start = blue_prints['broadcaster'](name='broadcaster', state=states)
         q = deque()
         q.append(start)
@@ -202,13 +202,41 @@ def solve_1(in_f: str) -> int:
                 r.receive(pulse=pulse, sender_name=module.get_name())
                 q.append(r)
             # sleep(.2)
-        print(f"{high_signal_c =}")
-        print(f"{low_signal_c =}")
+        # print(f"{high_signal_c =}")
+        # print(f"{low_signal_c =}")
     return high_signal_c*low_signal_c
 
 
 def solve_2(in_f: str) -> int:
-    _, work_flows = parse(input_file=in_f)
+    work_flows, states, blue_prints = parse(input_file=in_f)
+    print(states)
+
+    limit = 1000000000000
+
+    for i in range(limit):
+        start = blue_prints['broadcaster'](name='broadcaster', state=states)
+        q = deque()
+        q.append(start)
+        start.receive(pulse=Pulse.LOW, sender_name='button')
+        pulse = None
+
+        while q:
+            module = q.popleft()
+            pulse = module.send()
+            if pulse == Pulse.NONE:
+                continue
+
+            receivers = work_flows[module.get_name()]
+            for receiver in receivers:
+                if receiver not in blue_prints:
+                    if receiver == 'rx' and pulse == Pulse.LOW:
+                        return i
+                    continue
+                r = blue_prints[receiver](name=receiver, state=states)
+                r.receive(pulse=pulse, sender_name=module.get_name())
+                q.append(r)
+    print(states)
+    return -1
 
 
 if __name__ == '__main__':
@@ -218,3 +246,9 @@ if __name__ == '__main__':
         print(f"Correct answer: {res_1}")
     else:
         print(f'Wrong answer: {res_1}')
+
+    res_2 = solve_2(in_f=infile)
+    if res_2 == 681194780:
+        print(f"Correct answer: {res_2}")
+    else:
+        print(f'Wrong answer: {res_2}')

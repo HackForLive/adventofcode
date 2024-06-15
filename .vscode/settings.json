@@ -9,5 +9,8 @@
     "python.testing.pytestPath": "D:/git/adventofcode/venv/Scripts/pytest.exe",
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "editor.rulers": [100]
+    "editor.rulers": [
+        100
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }
