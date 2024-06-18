@@ -59,12 +59,10 @@ def get_start_point(matrix: np.matrix, start: str = ItemTypeEnum.START.value) ->
 def get_eligible_points(p: QueuedItem, matrix: np.matrix) -> List[QueuedItem]:
     res = []
     for y in [-1, 1]:
-        if ((matrix[p.y + y, p.x] == ItemTypeEnum.PLOT.value) |
-            (matrix[p.y + y, p.x] == ItemTypeEnum.START.value)):
+        if matrix[p.y + y, p.x] == ItemTypeEnum.PLOT.value:
             res.append(QueuedItem(y=p.y + y, x=p.x, time_step=p.time_step + 1))
     for x in [-1, 1]:
-        if ((matrix[p.y, p.x + x] == ItemTypeEnum.PLOT.value) |
-            (matrix[p.y, p.x + x] == ItemTypeEnum.START.value)):
+        if matrix[p.y, p.x + x] == ItemTypeEnum.PLOT.value:
             res.append(QueuedItem(y=p.y, x=p.x + x, time_step=p.time_step + 1))
     return res
 
@@ -89,19 +87,54 @@ def get_number_of_plot_visited(start: Tuple[int, int], steps: int, matrix: np.ma
         nodes = get_eligible_points(p=curr, matrix=matrix)
         for n in nodes:
             q.append(n)
+    # print(res)
     return len(res)
 
+# make it more efficient
+def get_number_of_plot_visited_perf(start: Tuple[int, int], steps: int, matrix: np.matrix) -> int:
+    q = deque()
+    s = QueuedItem(x=start[1], y=start[0], time_step=0)
+    accessed = set()
+    res = []
+    q.append(s)
+    while q:
+        curr = q.popleft()
+        if (curr.y, curr.x) in accessed:
+            continue
 
-def solve_1(in_f: str):
+        accessed.add((curr.y, curr.x))
+        res.append(curr)
+
+        if curr.time_step == steps:
+            continue
+
+        nodes = get_eligible_points(p=curr, matrix=matrix)
+        for node in nodes:
+            q.append(node)
+    return len([o for o in res if o.time_step % 2 == steps % 2])
+
+
+def solve_1(in_f: str, steps: int):
     matrix = parse(input_file=in_f)
     # print(matrix)
     r, c = get_start_point(matrix=matrix)
-    return get_number_of_plot_visited(start=(r, c), steps=64, matrix=matrix)
+    # remove S val
+    matrix[r,c] = ItemTypeEnum.PLOT.value
+    return get_number_of_plot_visited_perf(start=(r, c), steps=steps, matrix=matrix)
 
 if __name__ == '__main__':
     infile = os.path.join(curr_dir, 'input.txt')
-    res_1 = solve_1(in_f=infile)
+    n = 64
+    res_1 = solve_1(in_f=infile, steps=n)
     if res_1 == 3820:
-        print(f"Correct answer: {res_1}")
+        print(f"Correct answer: {res_1}, steps: {n}")
     else:
-        print(f'Wrong answer: {res_1}')
+        print(f'Wrong answer: {res_1}, steps: {n}')
+
+
+
+    # how many points are reachable and their distance from S
+    # steps: 26501365
+    # could not be directly simulated
+
+    # numbering
