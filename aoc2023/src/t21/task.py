@@ -74,7 +74,6 @@ def get_number_of_plot_visited(start: Tuple[int, int], steps: int, matrix: np.ma
     s = QueuedItem(x=start[1], y=start[0], time_step=0)
     accessed = set()
     q.append(s)
-    # accessed.add(s)
     res = set()
     while q:
         curr = q.popleft()
@@ -86,29 +85,23 @@ def get_number_of_plot_visited(start: Tuple[int, int], steps: int, matrix: np.ma
         if curr.time_step == steps:
             res.add(curr)
             continue
-       
+
         nodes = get_eligible_points(p=curr, matrix=matrix)
         for n in nodes:
             q.append(n)
-        # q = deque(sorted(set(q)))
-        # print(q)
-        # q = deque(set(q))
-        # print(q)
-    # print(q)
-    # print(set([o for o in q if o.time_step  == steps]))
-    print(res)
     return len(res)
 
 
 def solve_1(in_f: str):
     matrix = parse(input_file=in_f)
-    print(matrix)
+    # print(matrix)
     r, c = get_start_point(matrix=matrix)
-    print(r, c)
     return get_number_of_plot_visited(start=(r, c), steps=64, matrix=matrix)
 
 if __name__ == '__main__':
     infile = os.path.join(curr_dir, 'input.txt')
-    res = solve_1(in_f=infile)
-    print(res)
-    # answer is too low 3819
+    res_1 = solve_1(in_f=infile)
+    if res_1 == 3820:
+        print(f"Correct answer: {res_1}")
+    else:
+        print(f'Wrong answer: {res_1}')
