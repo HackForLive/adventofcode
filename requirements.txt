@@ -2,3 +2,4 @@ numpy
 ruff
 line_profiler
 pytest
+pandas
