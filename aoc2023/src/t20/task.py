@@ -1,4 +1,4 @@
-from collections import deque 
+from collections import deque
 
 from abc import abstractmethod, ABCMeta
 import pathlib
@@ -207,13 +207,13 @@ def solve_1(in_f: str) -> int:
     return high_signal_c*low_signal_c
 
 
-def solve_2(in_f: str) -> int:
+def solve_2(in_f: str, edge: str) -> int:
     work_flows, states, blue_prints = parse(input_file=in_f)
-    print(states)
+    # print(states)
 
-    limit = 1000000000000
+    limit = 1000000
 
-    for i in range(limit):
+    for i in range(1,limit,1):
         start = blue_prints['broadcaster'](name='broadcaster', state=states)
         q = deque()
         q.append(start)
@@ -228,15 +228,42 @@ def solve_2(in_f: str) -> int:
 
             receivers = work_flows[module.get_name()]
             for receiver in receivers:
+                # this condition needed for rx as it does not exist in blue prints
                 if receiver not in blue_prints:
-                    if receiver == 'rx' and pulse == Pulse.LOW:
-                        return i
                     continue
+                if receiver == edge and pulse == Pulse.LOW:
+                    return i
                 r = blue_prints[receiver](name=receiver, state=states)
                 r.receive(pulse=pulse, sender_name=module.get_name())
                 q.append(r)
-    print(states)
+    # print(states)
     return -1
+
+def create_edge_list(in_f: str) -> None:
+    """
+    Create edge list to export data to visualize graph
+    https://graphonline.ru/en/create_graph_by_edge_list
+    """
+    work_flows, states, blue_prints = parse(input_file=in_f)
+    # print(states)
+    # print(work_flows)
+    # print(blue_prints)
+    vertex = set()
+
+    for k, vals in work_flows.items():
+        res = "U"
+        # print(blue_prints[k])
+        if blue_prints[k] == ConjuctionModule:
+            res = 10
+        if blue_prints[k] == FlipFlopModule:
+            res = 1
+        if blue_prints[k] == BroadcastModule:
+            res = 5
+        vertex.add(k)
+        for v in vals:
+            vertex.add(v)
+            # print(f'{k} {v} {res}')
+            print(f'{k}-({res})>{v}')
 
 
 if __name__ == '__main__':
@@ -247,8 +274,22 @@ if __name__ == '__main__':
     else:
         print(f'Wrong answer: {res_1}')
 
-    res_2 = solve_2(in_f=infile)
-    if res_2 == 681194780:
+    # create_edge_list(in_f=infile)
+
+    # 3769
+    # tx - receive LOW
+    # 4027
+    # vg - receive LOW
+    # 3929
+    # kp - receive LOW
+    # 4001
+    # gc - receive LOW
+    from functools import reduce
+    res_2 = reduce(lambda x, y: y*x,
+                   [solve_2(in_f=infile, edge='tx'), solve_2(in_f=infile, edge='vg'),
+                    solve_2(in_f=infile, edge='kp'), solve_2(in_f=infile, edge='gc')])
+
+    if res_2 == 238593356738827:
         print(f"Correct answer: {res_2}")
     else:
         print(f'Wrong answer: {res_2}')
