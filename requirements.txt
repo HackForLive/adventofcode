@@ -3,3 +3,4 @@ ruff
 line_profiler
 pytest
 pandas
+pydantic
