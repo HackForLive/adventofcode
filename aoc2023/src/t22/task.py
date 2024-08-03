@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List
 from pydantic import BaseModel
 
 
@@ -95,18 +95,8 @@ def solve_2(in_f: str):
     print(f"{len(fallen_bricks) = }")
 
     brick_scores = get_brick_scores(fallen_bricks=fallen_bricks)
-    # print(f"{brick_scores = }")
-    # res = 0
-    # for v, i in brick_scores.items():
-    #     if not i:
-    #         res += 1
-    # print(f"{res =}")
 
-    n = get_number_of_fallen_bricks(brick_scores=brick_scores, bricks=fallen_bricks)
-
-    # print(f"{brick_scores = }")
-    print(n)
-    return n
+    return get_number_of_fallen_bricks(brick_scores=brick_scores, bricks=fallen_bricks)
 
 
 def get_number_of_fallen_bricks(bricks: List[Brick], brick_scores: Dict[Brick, List[Brick]]):
@@ -117,12 +107,9 @@ def get_number_of_fallen_bricks(bricks: List[Brick], brick_scores: Dict[Brick, L
             if b.end.z + 1 == a.start.z and has_collision_in_xy(a=a, b=b):
                 childs[a].add(b)
 
-    # print(childs)
     res = 0
     for s in bricks:
         t_f = set(brick_scores[s])
-        # print(t_f)
-        # t_f.add(el_s)
         if not t_f:
             # empty
             continue
@@ -229,15 +216,11 @@ def fall_process(snapshot_bricks: List[Brick]) -> List[Brick]:
         # naively check all already fallen bricks
         # reversed return iterator, does not copy!
         for f in sorted(fallen_bricks, key=lambda l: l.end.z, reverse=True):
-            # print(f)
             if has_collision_in_xy(a=f, b=brick):
-                # print(f)
-                # print(brick)
                 fallen_bricks.append(Brick(
                     start=Point(x=brick.start.x, y=brick.start.y, z=f.end.z + 1),
                     end=Point(x=brick.end.x, y=brick.end.y,
                               z=f.end.z + 1 + brick.end.z - brick.start.z)))
-                # print(fallen_bricks[-1])
                 is_free = False
                 break
         if is_free:
@@ -289,8 +272,6 @@ if __name__ == '__main__':
         print(f'Wrong answer: {res_1}, should be 416')
 
     res_2 = solve_2(in_f=infile)
-    # 1207 ---> too low
-    # 2472 ---> too low
     if res_2 == 60963:
         print(f"Correct answer: {res_2}")
     else:
