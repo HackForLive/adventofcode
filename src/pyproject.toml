@@ -1,0 +1,12 @@
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aoc"
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "aoc.version.VERSION"}
+
+[tool.setuptools]
+packages = ["aoc"]
+include-package-data = true

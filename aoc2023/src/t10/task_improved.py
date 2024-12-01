@@ -5,24 +5,12 @@ import os
 import pathlib
 from typing import List, NamedTuple, Tuple
 
+from aoc.model.direction import Direction
 import numpy as np
 
 curr_dir = pathlib.Path(__file__).parent.resolve()
 input_file = os.path.join(curr_dir, 'test.txt')
 
-
-class Direction(Enum):
-    """
-    N/S/E/W
-    """
-    NORTH = [-1, 0]
-    EAST = [0, 1]
-    SOUTH = [1, 0]
-    WEST = [0, -1]
-
-    @classmethod
-    def get_name_by_value(cls,val):
-        return { v:k for k,v in dict(vars(cls)).items() if isinstance(v,list)}.get(val, None)
 
 
 class Node(NamedTuple):
