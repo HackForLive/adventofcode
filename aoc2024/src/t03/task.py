@@ -1,4 +1,6 @@
 from pathlib import Path
+import functools
+import re
 
 from aoc.performance import timer_decorator
 
@@ -61,8 +63,10 @@ def parse_2(content: str):
     while i < len(content) - 4:
         if content[i:i+3] == 'mul':
             i = i+3
+            if not enable:
+                continue 
             tmp = get_pair_multiplication(content=content, idx=i)
-            if tmp is not None and enable:
+            if tmp is not None:
                 res += tmp
         elif (i+5 < len(content)) and (content[i:i+4] == "do()"):
             enable = True
@@ -83,6 +87,16 @@ def solve_1(p: Path):
 
 
 @timer_decorator
+def solve_1_regex(p: Path):
+    with open(p, encoding='utf-8', mode='r') as file:
+        data = file.read().rstrip()
+        
+        rgx = re.compile('mul\\((\\d+),(\\d+)\\)')
+        return functools.reduce(lambda a, b: a + b, 
+                                (int(i[0])*int(i[1]) for i in rgx.findall(data)))
+
+
+@timer_decorator
 def solve_2(p: Path):
     with open(p, encoding='utf-8', mode='r') as file:
         data = file.read().rstrip()
@@ -90,13 +104,12 @@ def solve_2(p: Path):
 
 
 if __name__ == '__main__':
-    test_o = solve_1(p=t_f)
+    test_o = solve_1_regex(p=t_f)
 
-    print(test_o)
     if test_o != 161:
         raise ValueError('Test failed!')
     
-    f_o = solve_1(p=in_f)
+    f_o = solve_1_regex(p=in_f)
     if f_o != 173529487:
         raise ValueError('The first task failed!')
     
