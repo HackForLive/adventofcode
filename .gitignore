@@ -6,3 +6,6 @@ venv/**
 **/aoc2022.egg-info/**
 
 *.exe
+
+# do not upload inputs
+in.txt
