@@ -36,21 +36,9 @@ def solve_2_regex(p: Path):
 
 
 if __name__ == '__main__':
-    test_o = solve_1_regex(p=t_f)
-
-    if test_o != 161:
-        raise ValueError('Test failed!')
-    
-    f_o = solve_1_regex(p=in_f)
-    if f_o != 173529487:
-        raise ValueError('The first task failed!')
-    
-    test_o = solve_2_regex(p=t_f)
-    if test_o != 48:
-        raise ValueError('Test failed!')
-    
-    s_o = solve_2_regex(p=in_f)
-    if s_o != 99532691:
-        raise ValueError('The second task failed!')
+    assert solve_1_regex(p=t_f) == 161
+    assert solve_1_regex(p=in_f)== 173529487
+    assert solve_2_regex(p=t_f) == 48
+    assert solve_2_regex(p=in_f) == 99532691
 
     print("All passed!")
