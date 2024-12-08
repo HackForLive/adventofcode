@@ -33,20 +33,9 @@ def solve_2(p: Path):
 
 
 if __name__ == '__main__':
-    test_o = solve_1(p=t_f)
-    if test_o != 11:
-        raise ValueError('Test failed!')
+    assert solve_1(p=t_f) == 11
+    assert solve_1(p=in_f) == 2970687
     
-    f_o = solve_1(p=in_f)
-    if f_o != 2970687:
-        raise ValueError('The first task failed!')
-    
-    test_o = solve_2(p=t_f)
-    if test_o != 31:
-        raise ValueError('Test failed!')
-    
-    s_o = solve_2(p=in_f)
-    if s_o != 23963899:
-        raise ValueError('The second task failed!')
-
+    assert solve_2(p=t_f) == 31
+    assert solve_2(p=in_f) == 23963899
     print("All passed!")
