@@ -100,22 +100,9 @@ def solve_2(p: Path):
 
 
 if __name__ == '__main__':
-    test_o = solve_1(p=t_f)
-
-    print(test_o)
-    if test_o != 2:
-        raise ValueError('Test failed!')
+    assert solve_1(p=t_f) == 2
+    assert solve_1(p=in_f) == 585
     
-    f_o = solve_1(p=in_f)
-    if f_o != 585:
-        raise ValueError('The first task failed!')
-    
-    test_o = solve_2(p=t_f)
-    if test_o != 4:
-        raise ValueError('Test failed!')
-    
-    s_o = solve_2(p=in_f)
-    if s_o != 626:
-        raise ValueError('The second task failed!')
-
+    assert solve_2(p=t_f) == 4
+    assert solve_2(p=in_f) == 626
     print("All passed!")
