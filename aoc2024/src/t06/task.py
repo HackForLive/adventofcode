@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
+import copy
 
 from aoc.model.direction import Direction, get_next_right_dir
 from aoc.model.geometry import Point2D
@@ -71,11 +72,65 @@ def get_number_of_void_points_naive(start: Tuple[int, int], matrix: np.ndarray) 
     return res
 
 
-def check_if_infinite_loop( 
-        matrix: np.ndarray,
+def check_if_infinite_loop(
+        y_b: Dict[int, List[int]],
+        x_b: Dict[int, List[int]],
         s_pos: Tuple[int, int],
         d: Direction) -> bool:
     
+    pos = (s_pos[0], s_pos[1])
+    dir = d
+    visited = set()
+    while True:
+        # print(pos)
+        # print(dir)
+        changed = False
+        if dir == Direction.NORTH:
+            if pos[1] not in x_b:
+                return False
+            
+           
+            for yy in reversed(x_b[pos[1]]):
+                if yy < pos[0]:
+                    pos = (yy + 1, pos[1])
+                    changed = True
+                    break
+        elif dir == Direction.SOUTH:
+            if pos[1] not in x_b:
+                return False
+            for yy in x_b[pos[1]]:
+                if yy > pos[0]:
+                    changed = True
+                    pos = (yy - 1, pos[1])
+                    break
+        elif dir == Direction.EAST:
+            if pos[0] not in y_b:
+                return False
+            for xx in y_b[pos[0]]:
+                if xx > pos[1]:
+                    changed = True
+                    pos = (pos[0], xx - 1)
+                    break
+        elif dir == Direction.WEST:
+            if pos[0] not in y_b:
+                return False
+            for xx in reversed(y_b[pos[0]]):
+                if xx < pos[1]:
+                    changed = True
+                    pos = (pos[0], xx + 1)
+                    break
+
+        if not changed:
+            return False
+        if (pos[0], pos[1], dir.name) in visited:
+            return True
+        
+        visited.add((pos[0], pos[1], dir.name))
+        
+        dir = get_next_right_dir(direction=dir)
+
+def get_number_of_void_points(start: Tuple[int, int], matrix: np.ndarray) -> int:
+    # get all # somehow structured to find the next # given position in log(n) or such
     x_b = {}
     y_b = {}
 
@@ -100,72 +155,6 @@ def check_if_infinite_loop(
         y_b[k] = sorted(y_b[k], key=lambda x: x, reverse=False)
 
 
-
-    pos = (s_pos[0], s_pos[1])
-    dir = d
-
-    visited = set()
-    while matrix[pos[0], pos[1]] != 'B':
-        if dir == Direction.NORTH:
-            # the smallest above
-            x = pos[1]
-            if x not in x_b:
-                return False
-            # yy = np.searchsorted(x_b[x], pos[0], side='left', sorter=None)
-            y = 0
-            for yy in x_b[x]:
-                if yy < pos[0]:
-                    y = yy + 1
-                    break
-            
-        elif dir == Direction.SOUTH:
-            # the smallest above
-            x = pos[1]
-            # yy = np.searchsorted(x_b[x], pos[0], side='left', sorter=None)
-            y = matrix.shape[0] - 1
-            
-            if x not in x_b:
-                return False
-
-            for yy in reversed(x_b[x]):
-                if yy > pos[0]:
-                    y = yy - 1
-                    break
-        elif dir == Direction.EAST:
-            y = pos[0]
-            if y not in y_b:
-                return False
-            x = matrix.shape[1] - 1
-            for xx in y_b[y]:
-                if xx > pos[0]:
-                    x = xx - 1
-                    break
-        elif dir == Direction.WEST:
-            y = pos[0]
-            if y not in y_b:
-                return False
-            x = 0
-            for xx in reversed(y_b[y]):
-                if xx < pos[0]:
-                    x = xx + 1
-                    break
-        if (y, x, dir.name) in visited:
-            return True
-
-        pos = (y, x)
-        if matrix[pos[0], pos[1]] == 'B':
-            break
-
-        visited.add((y, x, dir.name))
-        
-        dir = get_next_right_dir(direction=dir)
-    return False
-
-def get_number_of_void_points(start: Tuple[int, int], matrix: np.ndarray) -> int:
-    # get all # somehow structured to find the next # given position in log(n) or such
-    # print(matrix)
-    
-    # pos = Point2D(x=start[1], y=start[0])
     pos = (start[0], start[1])
 
     res = 0
@@ -173,8 +162,26 @@ def get_number_of_void_points(start: Tuple[int, int], matrix: np.ndarray) -> int
     for yy, xx in pts:
         if matrix[yy, xx] == '.':
             matrix[yy, xx] = '#'
-            if check_if_infinite_loop(matrix=matrix, s_pos=pos, d=Direction.NORTH):
+
+            if xx in x_b:
+                xxx = copy.deepcopy(x_b[xx])
+                x_b[xx] = sorted(x_b[xx] + [yy], key=lambda x: x, reverse=False)
+            else:
+                xxx = []
+                x_b[xx] = [yy]
+
+            if yy in y_b:
+                yyy = copy.deepcopy(y_b[yy])
+                y_b[yy] = sorted(y_b[yy] + [xx], key=lambda x: x, reverse=False)
+            else:
+                yyy = []
+                y_b[yy] = [xx]
+
+            if check_if_infinite_loop(x_b=x_b, y_b=y_b, s_pos=pos, d=Direction.NORTH):
                 res += 1
+            
+            x_b[xx] = xxx
+            y_b[yy] = yyy
             matrix[yy, xx] = '.'
     return res
 
@@ -190,16 +197,6 @@ def solve_1(p: Path) -> int:
         matrix_with_offset = get_matrix_with_offset(matrix=matrix, val="B", offset=1)
         start = find_start(start='^', matrix=matrix_with_offset)
         return len({(i[0], i[1]) for i in get_walk(start=start, matrix=matrix_with_offset)})
-    
-
-@timer_decorator
-def solve_2_naive(p: Path) -> int:
-    with open(p, encoding='utf-8', mode='r') as f:
-        arr_2d = np.array([[c for c in line.strip()] for line in f.readlines()])
-        matrix = np.asmatrix(arr_2d)
-        matrix_with_offset = get_matrix_with_offset(matrix=matrix, val="B", offset=1)
-        start = find_start(start='^', matrix=matrix_with_offset)
-        return get_number_of_void_points_naive(start=start, matrix=matrix_with_offset)
 
 @timer_decorator
 def solve_2(p: Path) -> int:
@@ -210,11 +207,9 @@ def solve_2(p: Path) -> int:
         start = find_start(start='^', matrix=matrix_with_offset)
         return get_number_of_void_points(start=start, matrix=matrix_with_offset)
 
-
 if __name__ == '__main__':
     assert solve_1(p=t_f) == 41
     assert solve_1(p=in_f) == 4454
-    assert solve_2_naive(p=t_f) == 6
-    assert solve_2_naive(p=in_f) == 1503
-    # print(solve_2(p=in_f))
+    assert solve_2(p=t_f) == 6
+    assert solve_2(p=in_f) == 1503
     print("All passed!")
