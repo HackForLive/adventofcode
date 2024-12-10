@@ -51,6 +51,30 @@ def get_hiking_trail_score(s_pos: List[Tuple[int, int]], matrix: np.ndarray) -> 
     return t_res
 
 
+def get_hiking_trail_all_score(s_pos: List[Tuple[int, int]], matrix: np.ndarray) -> int:
+    res = 0
+    for s in s_pos:
+        stack = deque()
+        stack.append(s)
+
+        while stack:
+            curr = stack.popleft()
+            val = matrix[curr[0], curr[1]]
+            if val == -1:
+                continue
+
+            if val == 9:
+                res += 1
+                continue
+
+            for p in (Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST):
+                y = curr[0] + p.value[0]
+                x = curr[1] + p.value[1]
+                if matrix[y, x] == val + 1:
+                    stack.append((y, x))
+    return res
+
+
 @timer_decorator
 def solve_1(p: Path) -> int:
     with open(p, encoding='utf-8', mode='r') as f:
@@ -60,10 +84,19 @@ def solve_1(p: Path) -> int:
         start_pos = find_start(start=0, matrix=matrix_with_offset)
         return get_hiking_trail_score(s_pos = start_pos, matrix=matrix_with_offset)
     
+
+@timer_decorator
+def solve_2(p: Path) -> int:
+    with open(p, encoding='utf-8', mode='r') as f:
+        arr_2d = np.array([[int(c) for c in line.strip()] for line in f.readlines()])
+        matrix = np.asmatrix(arr_2d)
+        matrix_with_offset = get_matrix_with_offset(matrix=matrix, val=-1, offset=1)
+        start_pos = find_start(start=0, matrix=matrix_with_offset)
+        return get_hiking_trail_all_score(s_pos = start_pos, matrix=matrix_with_offset)
+
 if __name__ == '__main__':
     assert solve_1(p=t_f) == 36
     assert solve_1(p=in_f) == 510
-    # assert solve_2_naive(p=t_f) == 6
-    # assert solve_2_naive(p=in_f) == 1503
-    # print(solve_2(p=in_f))
+    assert solve_2(p=t_f) == 81
+    assert solve_2(p=in_f) == 1058
     print("All passed!")
