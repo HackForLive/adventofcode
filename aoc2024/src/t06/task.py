@@ -1,9 +1,8 @@
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 import copy
 
 from aoc.model.direction import Direction, get_next_right_dir
-from aoc.model.geometry import Point2D
 from aoc.performance import timer_decorator
 
 curr_dir = Path(__file__).parent
@@ -22,55 +21,19 @@ def get_matrix_with_offset(matrix: np.matrix, val: str, offset: int) -> np.ndarr
 
 def get_walk(start: Tuple[int, int], matrix: np.ndarray) -> List[Tuple[int, int, str]]:
     dir = Direction.NORTH
-    pos = Point2D(x=start[1], y=start[0])
+    pos = (start[0], start[1])
 
     path = []
-    while matrix[pos.y, pos.x] != 'B':
-        path.append((pos.y, pos.x, dir.name))
+    while matrix[pos[0], pos[1]] != 'B':
+        path.append((pos[0], pos[1], dir.name))
 
-        y = pos.y + dir.value[0]
-        x = pos.x + dir.value[1]
+        y = pos[0] + dir.value[0]
+        x = pos[1] + dir.value[1]
         if matrix[y, x] == '#':
             dir = get_next_right_dir(direction=dir)
         else:
-            pos.y = y
-            pos.x = x
+            pos = (y, x)
     return path
-
-def get_number_of_void_points_naive(start: Tuple[int, int], matrix: np.ndarray) -> int:
-    """
-    Naive way to try out only visited points => ~70 secs
-    """
-    res = 0
-    pts = {(i[0], i[1]) for i in get_walk(start=start, matrix=matrix)}
-    # print(pts)
-    for pp in pts:
-        yy = pp[0]
-        xx = pp[1]
-        if matrix[yy, yy] == '.':
-            matrix[yy, xx] = '#'
-            dir = Direction.NORTH
-            pos = Point2D(x=start[1], y=start[0])
-            visited = set()
-            loop = False
-            while matrix[pos.y, pos.x] != 'B':
-                if (pos.y, pos.x, dir.name) in visited:
-                    loop = True
-                    break
-                visited.add((pos.y, pos.x, dir.name))
-
-                y = pos.y + dir.value[0]
-                x = pos.x + dir.value[1]
-                if matrix[y, x] == '#':
-                    dir = get_next_right_dir(direction=dir)
-                else:
-                    pos.y = y
-                    pos.x = x
-            if loop:
-                res += 1
-            matrix[yy, xx] = '.'
-    return res
-
 
 def check_if_infinite_loop(
         y_b: Dict[int, List[int]],
@@ -82,14 +45,10 @@ def check_if_infinite_loop(
     dir = d
     visited = set()
     while True:
-        # print(pos)
-        # print(dir)
         changed = False
         if dir == Direction.NORTH:
             if pos[1] not in x_b:
                 return False
-            
-           
             for yy in reversed(x_b[pos[1]]):
                 if yy < pos[0]:
                     pos = (yy + 1, pos[1])
@@ -126,11 +85,9 @@ def check_if_infinite_loop(
             return True
         
         visited.add((pos[0], pos[1], dir.name))
-        
         dir = get_next_right_dir(direction=dir)
 
 def get_number_of_void_points(start: Tuple[int, int], matrix: np.ndarray) -> int:
-    # get all # somehow structured to find the next # given position in log(n) or such
     x_b = {}
     y_b = {}
 
@@ -146,43 +103,32 @@ def get_number_of_void_points(start: Tuple[int, int], matrix: np.ndarray) -> int
                 y_b[y].append(p[1])
             else:
                 y_b[y] = [p[1]]
-    
-    # sort
-    for k in x_b.keys():
-        x_b[k] = sorted(x_b[k], key=lambda x: x, reverse=False)
 
-    for k in y_b.keys():
-        y_b[k] = sorted(y_b[k], key=lambda x: x, reverse=False)
-
-
-    pos = (start[0], start[1])
+    x_b = {k:sorted(x_b[k], key=lambda x: x, reverse=False) for k in x_b.keys()}
+    y_b = {k:sorted(y_b[k], key=lambda x: x, reverse=False) for k in y_b.keys()}
 
     res = 0
     pts = {(i[0], i[1]) for i in get_walk(start=start, matrix=matrix)}
     for yy, xx in pts:
-        if matrix[yy, xx] == '.':
-            matrix[yy, xx] = '#'
+        if xx in x_b:
+            xxx = copy.deepcopy(x_b[xx])
+            x_b[xx] = sorted(x_b[xx] + [yy], key=lambda x: x, reverse=False)
+        else:
+            xxx = []
+            x_b[xx] = [yy]
 
-            if xx in x_b:
-                xxx = copy.deepcopy(x_b[xx])
-                x_b[xx] = sorted(x_b[xx] + [yy], key=lambda x: x, reverse=False)
-            else:
-                xxx = []
-                x_b[xx] = [yy]
+        if yy in y_b:
+            yyy = copy.deepcopy(y_b[yy])
+            y_b[yy] = sorted(y_b[yy] + [xx], key=lambda x: x, reverse=False)
+        else:
+            yyy = []
+            y_b[yy] = [xx]
 
-            if yy in y_b:
-                yyy = copy.deepcopy(y_b[yy])
-                y_b[yy] = sorted(y_b[yy] + [xx], key=lambda x: x, reverse=False)
-            else:
-                yyy = []
-                y_b[yy] = [xx]
-
-            if check_if_infinite_loop(x_b=x_b, y_b=y_b, s_pos=pos, d=Direction.NORTH):
-                res += 1
-            
-            x_b[xx] = xxx
-            y_b[yy] = yyy
-            matrix[yy, xx] = '.'
+        if check_if_infinite_loop(x_b=x_b, y_b=y_b, s_pos=start, d=Direction.NORTH):
+            res += 1
+        
+        x_b[xx] = xxx
+        y_b[yy] = yyy
     return res
 
 def find_start(start: str, matrix: np.ndarray):
