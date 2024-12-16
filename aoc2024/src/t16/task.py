@@ -1,6 +1,8 @@
+from __future__ import annotations
+from collections import deque
 import heapq
 from pathlib import Path
-from typing import Tuple
+from typing import Set, Tuple
 
 from dataclasses import dataclass
 
@@ -30,7 +32,7 @@ class Step:
 
     def __lt__(self, other):
         return self.price < other.price
-
+    
 def get_point_on_map(c: str, map: np.matrix) -> Tuple[int, int]:
     rows, cols = np.where(map == c)
     assert len(rows) == 1
@@ -44,7 +46,41 @@ def cache_key(step: Step) -> Tuple[int, int, str]:
     # without price !  step.price
     return (step.y, step.x, step.direction.name)
 
-def shortest_path(m: np.matrix, rotate_cost: int, s_p: Tuple[int, int], e_p: Tuple[int, int]):
+def cache_key_all(step: Step) -> Tuple[int, int, str, int]:
+    # without price !  step.price
+    return (step.y, step.x, step.direction.name, step.price)
+
+def get_unique_points_at_all_best_paths(
+    e_s: Step, visited: Set[Tuple[int, int, str, int]]) -> int:
+
+    q = deque()
+    q.append(e_s)
+
+    uniq = set()
+
+    while q:
+        curr: Step = q.popleft()
+
+        if curr in uniq:
+            continue
+        
+        for c_dir in get_directions(curr.direction):
+            if c_dir != curr.direction:
+                prev_step = Step(x=curr.x, y=curr.y, direction=c_dir, price=curr.price-1000)
+
+            else:
+                prev_step = Step(x=curr.x - c_dir.value[1], y=curr.y - c_dir.value[0], direction=c_dir, 
+                            price=curr.price-1)
+            if cache_key_all(step=prev_step) in visited:
+                q.append(prev_step)
+    
+        uniq.add((curr.y, curr.x))
+    return len(uniq)
+    
+
+
+def shortest_paths_points(m: np.matrix, rotate_cost: int, s_p: Tuple[int, int], e_p: Tuple[int, int]
+                          ) -> Tuple[int, int]:
     
     s_east = Step(y=s_p[0], x=s_p[1], direction=Direction.EAST, price=0)
     # print(f"{s_p =}")
@@ -56,10 +92,12 @@ def shortest_path(m: np.matrix, rotate_cost: int, s_p: Tuple[int, int], e_p: Tup
     visited = set()
     visited.add(cache_key(s_east))
 
+    visited_f = set()
+    visited_f.add(cache_key_all(s_east))
     while pq:
         u: Step = heapq.heappop(pq)
         if u.x == e_p[1] and u.y == e_p[0]:
-            return u.price
+            return u.price, get_unique_points_at_all_best_paths(e_s=u, visited=visited_f)
 
         for c_dir in get_directions(u.direction):
             ny = u.y
@@ -72,7 +110,6 @@ def shortest_path(m: np.matrix, rotate_cost: int, s_p: Tuple[int, int], e_p: Tup
             else:
                 ny = u.y + c_dir.value[0]
                 nx = u.x + c_dir.value[1]
-                # border case
                 if m[ny, nx] == '#':
                     continue
 
@@ -80,12 +117,14 @@ def shortest_path(m: np.matrix, rotate_cost: int, s_p: Tuple[int, int], e_p: Tup
                 x = nx,
                 y = ny,
                 direction=c_dir,
-                price=u.price + curr_price
+                price=u.price + curr_price,
             )
             if not cache_key(next_step) in visited:
                 heapq.heappush(pq, next_step)
                 visited.add(cache_key(next_step))
-    return -1
+                visited_f.add(cache_key_all(next_step))
+    return -1, -1
+
 
 def parse(p: Path):
     with open(p, 'r', encoding='utf8') as f:
@@ -99,11 +138,25 @@ def solve_1(p: Path) -> int:
     rotate_cost = 1000
     s_p = get_point_on_map(c='S', map=matrix)
     e_p = get_point_on_map(c='E', map=matrix)
-    return shortest_path(m=matrix, rotate_cost=rotate_cost, s_p=s_p, e_p=e_p)
+    price, _ = shortest_paths_points(m=matrix, rotate_cost=rotate_cost, s_p=s_p, e_p=e_p)
+    return price
+
+@timer_decorator
+def solve_2(p: Path) -> int:
+    matrix = parse(p=p)
+    rotate_cost = 1000
+    s_p = get_point_on_map(c='S', map=matrix)
+    e_p = get_point_on_map(c='E', map=matrix)
+    _, points = shortest_paths_points(m=matrix, rotate_cost=rotate_cost, s_p=s_p, e_p=e_p)
+    return points
 
 
 if __name__ == '__main__':
     assert solve_1(p=t_f) == 7036
     assert solve_1(p=t2_f) == 11048
     assert solve_1(p=in_f) == 143580
+
+    assert solve_2(p=t_f) == 45
+    assert solve_2(p=t2_f) == 64
+    assert solve_2(p=in_f) == 645
     print("All passed!")
