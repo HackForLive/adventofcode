@@ -75,13 +75,39 @@ def bfs(s_p: Step, e_p: Step, m: np.matrix) -> Tuple[int, Set[Step]]:
         visited.add(curr)
     return -1, set()
 
+def bfs_update_cheat_paths(
+        s_x: int, s_y: int, m: np.matrix, cheats: Dict[Tuple[int, int, int, int], int], max_cheat_l: int,
+        d: Direction, points: Dict[Tuple[int, int], int]) -> Dict[Tuple[int, int, int, int], int]:
 
-def bfs_find_cheats(s_p: Step, e_p: Step, points: Dict[Tuple[int, int], int], m: np.matrix) -> List[int]:
+    from_x = s_x - d.value[1]
+    from_y = s_y - d.value[0]
+
+    if (from_y, from_x) not in points:
+        return cheats
+
+    for k, v in points.items():
+        y = k[0]
+        x = k[1]
+
+        price = abs(from_y-y) + abs(from_x-x)
+
+        if price > max_cheat_l:
+            continue
+
+        diff = points[(from_y, from_x)] - (points[(y, x)] + price)
+        if diff > 0:
+            if (from_y, from_x, y, x) not in cheats:
+                cheats[(from_y, from_x, y, x)] = diff
+    return cheats
+
+
+def bfs_find_cheats(s_p: Step, e_p: Step, points: Dict[Tuple[int, int], int], max_cheat_l:int,
+                    m: np.matrix) -> Dict[Tuple[int, int, int, int], int]:
     q = deque()
 
     q.append(Step(x=s_p.x, y=s_p.y, price=0))
     visited = set()
-    cheats = []
+    cheats = {}
 
     while q:
         curr: Step = q.popleft()
@@ -98,16 +124,9 @@ def bfs_find_cheats(s_p: Step, e_p: Step, points: Dict[Tuple[int, int], int], m:
             y = curr.y + c_dir.value[0]
             p = m[y, x]
             if p == '#':
-                # test if cheat
-                for cc_dir in get_directions(d=c_dir):
-                    xx = x + cc_dir.value[1]
-                    yy = y + cc_dir.value[0]
-                    # fix here the ds
-                    if ((curr.y, curr.x) in points) and ((yy, xx) in points):
-                        diff = points[(curr.y, curr.x)] - points[(yy, xx)] - 2
-                        if diff > 0:
-                            cheats.append(diff)
-                            # return cheats
+                # test all cheats
+                cheats = bfs_update_cheat_paths(s_x=x, s_y=y, m=m, cheats=cheats, max_cheat_l=max_cheat_l, 
+                                            d=c_dir, points=points)
                 continue
             next_step = Step(x=x, y=y, price=curr.price+1)
             q.append(next_step)
@@ -115,18 +134,16 @@ def bfs_find_cheats(s_p: Step, e_p: Step, points: Dict[Tuple[int, int], int], m:
         visited.add(curr)
     return cheats
 
-
-def get_number_of_cheats(s_p: Tuple[int, int], e_p: Tuple[int, int], cheat_lim: int, m: np.matrix) -> int:
+def get_number_of_cheats(s_p: Tuple[int, int], e_p: Tuple[int, int], cheat_lim: int, max_cheat_l: int,
+                           m: np.matrix) -> int:
     start_s = Step(x=s_p[1], y=s_p[0])
     end_s = Step(x=e_p[1], y=e_p[0])
     _, steps = bfs(s_p=end_s, e_p=start_s, m=m)
 
-    d ={(step.y, step.x): step.price for step in steps}
+    d ={(step.y, step.x): step.price for step in sorted(steps, key=lambda x:x.price)}
+    cheats = bfs_find_cheats(s_p=start_s, e_p=end_s, points=d, max_cheat_l=max_cheat_l, m=m)
 
-    cheats = bfs_find_cheats(s_p=start_s, e_p=end_s, points=d, m=m)
-    # print(cheats)
-
-    return sum((1 for i in cheats if i >= cheat_lim))
+    return sum((1 for _, v in cheats.items() if v >= cheat_lim))
     
 
 def parse(p: Path) -> np.matrix:
@@ -136,22 +153,16 @@ def parse(p: Path) -> np.matrix:
         return matrix
 
 @timer_decorator
-def solve_1(p: Path, cheat_lim: int) -> int:
+def solve(p: Path, cheat_lim: int, max_cheat_l: int) -> int:
     matrix = parse(p=p)
     s_p = get_point_on_map(c='S', map=matrix)
     e_p = get_point_on_map(c='E', map=matrix)
-    return get_number_of_cheats(s_p=s_p, e_p=e_p, cheat_lim=cheat_lim, m=matrix)
-
-# @timer_decorator
-# def solve_2(p: Path, cheat_lim: int) -> int:
-#     matrix = parse(p=p)
-#     s_p = get_point_on_map(c='S', map=matrix)
-#     e_p = get_point_on_map(c='E', map=matrix)
-#     return get_number_of_cheats(s_p=s_p, e_p=e_p, cheat_lim=cheat_lim, m=matrix)
+    return get_number_of_cheats(s_p=s_p, e_p=e_p, cheat_lim=cheat_lim, max_cheat_l=max_cheat_l, m=matrix)
 
 
 if __name__ == '__main__':
-
-    assert solve_1(p=t_f, cheat_lim=10) == 10 
-    assert solve_1(p=in_f, cheat_lim=100) == 1286
+    assert solve(p=t_f, cheat_lim=10, max_cheat_l=2) == 10
+    assert solve(p=in_f, cheat_lim=100, max_cheat_l=2) == 1286
+    assert solve(p=t_f, cheat_lim=50, max_cheat_l=20) == 285
+    assert solve(p=in_f, cheat_lim=100, max_cheat_l=20) == 989316
     print("All passed!")
