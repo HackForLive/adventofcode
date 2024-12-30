@@ -131,7 +131,6 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
     n_keypad_map = {v:k for k,v in n_keypad.items()}
     
     curr = key_pad_s
-    last_pos = curr
     fin_seq = []
     dest = ''
     for i in code:
@@ -139,7 +138,6 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
         # greedy property go hor/ver or ver/hor if both possible and get the shortest
         
         dest = i
-        # print(f"1. {curr =} {dest =}")
 
         if curr != dest:
             horiz = '>' if n_keypad[curr][1] < n_keypad[dest][1] else '<'
@@ -162,7 +160,6 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
                 seq = [vert for _ in range(abs(n_keypad[curr][0]-n_keypad[dest][0]))]
                 seq.extend([horiz for _ in range(abs(n_keypad[curr][1]-n_keypad[dest][1]))])
                 seq.append('A')
-                # print(f'1. {seq =}')
                 s_s = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad)
 
             # compare both
@@ -179,15 +176,12 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
             n_seq = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad)
             fin_seq.extend(n_seq)
             # traverse
-        # print(f"{fin_seq =}")
-        # exit(0)
         curr = dest
     return fin_seq
 
 
 
-def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[int, int]]
-                   ) -> Tuple[List[str], str]:
+def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[int, int]]) -> List[str]:
     """
         +---+---+
         | ^ | A |
@@ -201,8 +195,6 @@ def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[
     dest = ''
     for i in in_seq:
         dest = i
-        # print(f"2. {curr =} {dest =}")
-        last = curr
         if curr != dest:
             horiz = '>' if d_keypad[curr][1] < d_keypad[dest][1] else '<'
             vert = 'v' if d_keypad[curr][0] < d_keypad[dest][0] else '^'
@@ -217,9 +209,7 @@ def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[
                 seq.extend(h)
                 seq.extend(v)
                 seq.append('A')
-                # print(f'2. {seq =}')
                 f_s = enter_sequence_2(key_pad_s='A', in_seq=seq, d_keypad=d_keypad)
-                # res
             
             # can I go vertically?
             s_s = []
@@ -228,7 +218,6 @@ def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[
                 seq.extend(v)
                 seq.extend(h)
                 seq.append('A')
-                # print(f'2. {seq =}')
                 s_s = enter_sequence_2(key_pad_s='A', in_seq=seq, d_keypad=d_keypad)
             # traverse
             # compare both
@@ -248,8 +237,7 @@ def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[
     return fin_seq
 
 
-def enter_sequence_2(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[int, int]]
-                     ) -> Tuple[List[str], str]:
+def enter_sequence_2(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[int, int]]) -> List[str]:
     """
         +---+---+
         | ^ | A |
@@ -263,15 +251,12 @@ def enter_sequence_2(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tupl
     dest = ''
     for i in in_seq:
         dest = i
-        # print(f"3. {curr =} {dest =}")
         if curr != dest:
             horiz = '>' if d_keypad[curr][1] < d_keypad[dest][1] else '<'
             vert = 'v' if d_keypad[curr][0] < d_keypad[dest][0] else '^'
 
             v = [vert for _ in range(abs(d_keypad[curr][0]-d_keypad[dest][0]))]
             h = [horiz for _ in range(abs(d_keypad[curr][1]-d_keypad[dest][1]))]
-            # print(f'{h =}')
-            # print(f'{v =}')
 
             f_seq = []
             # can I go horizontally?
@@ -279,15 +264,12 @@ def enter_sequence_2(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tupl
                 f_seq.extend(h)
                 f_seq.extend(v)
                 f_seq.append('A')
-                # print(f'3. {f_seq =}')
-                # res
             # can I go vertically?
             s_seq = []
             if (d_keypad[dest][0], d_keypad[curr][1]) in d_keypad_map:
                 s_seq.extend(v)
                 s_seq.extend(h)
                 s_seq.append('A')
-                # print(f'3. {s_seq =}')
             # traverse
             # compare both
             if not f_seq:
@@ -300,23 +282,15 @@ def enter_sequence_2(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tupl
                 fin_seq.extend(s_seq)
         else:
             seq = ['A']
-            # print(f'3. {seq =}')
             fin_seq.extend(seq)
         curr = dest
     return fin_seq
 
 
 def get_complexity(code: str) -> int:
-    matches = re.findall(pattern='(\\d+)', string=code)
+    n = int(re.findall(pattern='(\\d+)', string=code)[0])
 
-    n = int(matches[0])
-    m = get_sequence(code=code)
-    # print(f"{n =}")
-    # print(f"{len(m) =}")
-    # print(f"{m =}")
-    # print(f"{''.join(m) =}")
-    # exit(0)
-    return n*len(m)
+    return n*len(get_sequence(code=code))
 
 def get_complexity_sum(codes: List[str]) -> int:
     return sum((get_complexity(code=code) for code in codes))
@@ -327,8 +301,7 @@ def parse(p: Path) -> List[str]:
 
 @timer_decorator
 def solve(p: Path) -> int:
-    codes = parse(p=p)
-    return get_complexity_sum(codes=codes)
+    return get_complexity_sum(codes=parse(p=p))
 
 
 if __name__ == '__main__':
