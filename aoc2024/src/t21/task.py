@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections import deque
 from pathlib import Path
 import re
+import sys
 from typing import Dict, List, Set, Tuple
 
 from dataclasses import dataclass
@@ -131,7 +132,6 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
     n_keypad_map = {v:k for k,v in n_keypad.items()}
     
     curr = key_pad_s
-    # fin_seq = []
     res = 0
     dest = ''
     for i in code:
@@ -144,43 +144,27 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
             horiz = '>' if n_keypad[curr][1] < n_keypad[dest][1] else '<'
             vert = 'v' if n_keypad[curr][0] < n_keypad[dest][0] else '^'
 
-            
+            v = [vert for _ in range(abs(n_keypad[curr][0]-n_keypad[dest][0]))]
+            h = [horiz for _ in range(abs(n_keypad[curr][1]-n_keypad[dest][1]))]
+
             # can I go horizontally?
-            f_s = 0
+            h_f = sys.maxsize
             if (n_keypad[curr][0], n_keypad[dest][1]) in n_keypad_map:
-                seq = [horiz for _ in range(abs(n_keypad[curr][1]-n_keypad[dest][1]))]
-                seq.extend([vert for _ in range(abs(n_keypad[curr][0]-n_keypad[dest][0]))])
-                seq.append('A')
-                # print(f'1. {seq =}')
+                seq = h + v + ['A']
                 
-                f_s = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d)
+                h_f = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d)
                 
             # can I go vertically?
-            s_s = 0
+            v_f = sys.maxsize
             if (n_keypad[dest][0], n_keypad[curr][1]) in n_keypad_map:
-                seq = [vert for _ in range(abs(n_keypad[curr][0]-n_keypad[dest][0]))]
-                seq.extend([horiz for _ in range(abs(n_keypad[curr][1]-n_keypad[dest][1]))])
-                seq.append('A')
-                s_s = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d)
+                seq = v + h + ['A']
+                v_f = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d)
 
             # compare both
-            if not f_s:
-                # fin_seq.extend(s_s)
-                res += s_s
-            elif not s_s:
-                res += f_s
-                # fin_seq.extend(f_s)
-            elif f_s < s_s:
-                res += f_s
-                # fin_seq.extend(f_s)
-            else:
-                res += s_s
-                # fin_seq.extend(s_s)
+            res += min(h_f, v_f)
         else:
             seq = ['A']
-            n_seq = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d)
-            # fin_seq.extend(n_seq)
-            res += n_seq
+            res += enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d)
             # traverse
         curr = dest
     return res
@@ -216,33 +200,20 @@ def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[
 
             # can I go horizontally first?
             # f_s = []
-            f_s_l = 0
+            h_f = sys.maxsize
             if (d_keypad[curr][0], d_keypad[dest][1]) in d_keypad_map:
-                seq = []
-                seq.extend(h)
-                seq.extend(v)
-                seq.append('A')
-                f_s_l = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
+                seq = h + v + ['A']
+                h_f = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
             
             # can I go vertically first?
             # s_s = []
-            s_s_l = 0
+            v_f = sys.maxsize
             if (d_keypad[dest][0], d_keypad[curr][1]) in d_keypad_map:
-                seq = []
-                seq.extend(v)
-                seq.extend(h)
-                seq.append('A')
-                s_s_l = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
+                seq = v + h + ['A']
+                v_f = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
             # traverse
             # compare both
-            if not f_s_l:
-                res += s_s_l
-            elif not s_s_l:
-                res += f_s_l
-            elif f_s_l < s_s_l:
-                res += f_s_l
-            else:
-                res += s_s_l
+            res += min(v_f, h_f)
         else:
             seq = ['A']
             res += enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
