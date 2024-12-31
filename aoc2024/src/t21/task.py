@@ -76,7 +76,7 @@ import numpy as np
 #         visited.add(curr)
 #     return -1, set()
 
-def get_sequence(code: str, robot_n: int) -> List[str]:
+def get_sequence(code: str, robot_n: int) -> int:
     """
     numeric keypad
     +---+---+---+
@@ -126,12 +126,13 @@ def get_sequence(code: str, robot_n: int) -> List[str]:
 
 
 def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, int]], 
-                     d_keypad: Dict[str, Tuple[int, int]], d: int) -> List[str]:
+                     d_keypad: Dict[str, Tuple[int, int]], d: int) -> int:
     
     n_keypad_map = {v:k for k,v in n_keypad.items()}
     
     curr = key_pad_s
-    fin_seq = []
+    # fin_seq = []
+    res = 0
     dest = ''
     for i in code:
         # get subsequence for each part of code and append the shortest
@@ -145,7 +146,7 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
 
             
             # can I go horizontally?
-            f_s = []
+            f_s = 0
             if (n_keypad[curr][0], n_keypad[dest][1]) in n_keypad_map:
                 seq = [horiz for _ in range(abs(n_keypad[curr][1]-n_keypad[dest][1]))]
                 seq.extend([vert for _ in range(abs(n_keypad[curr][0]-n_keypad[dest][0]))])
@@ -155,7 +156,7 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
                 f_s = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d)
                 
             # can I go vertically?
-            s_s = []
+            s_s = 0
             if (n_keypad[dest][0], n_keypad[curr][1]) in n_keypad_map:
                 seq = [vert for _ in range(abs(n_keypad[curr][0]-n_keypad[dest][0]))]
                 seq.extend([horiz for _ in range(abs(n_keypad[curr][1]-n_keypad[dest][1]))])
@@ -164,25 +165,29 @@ def get_shortest_seq(key_pad_s: str, code: str, n_keypad: Dict[str, Tuple[int, i
 
             # compare both
             if not f_s:
-                fin_seq.extend(s_s)
+                # fin_seq.extend(s_s)
+                res += s_s
             elif not s_s:
-                fin_seq.extend(f_s)
-            elif len(f_s) < len(s_s):
-                fin_seq.extend(f_s)
+                res += f_s
+                # fin_seq.extend(f_s)
+            elif f_s < s_s:
+                res += f_s
+                # fin_seq.extend(f_s)
             else:
-                fin_seq.extend(s_s)
+                res += s_s
+                # fin_seq.extend(s_s)
         else:
             seq = ['A']
             n_seq = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d)
-            fin_seq.extend(n_seq)
+            # fin_seq.extend(n_seq)
+            res += n_seq
             # traverse
         curr = dest
-    return fin_seq
+    return res
 
+memo = {}
 
-
-def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[int, int]], d: int
-                   ) -> List[str]:
+def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[int, int]], d: int) -> int:
     """
         +---+---+
         | ^ | A |
@@ -191,10 +196,14 @@ def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[
     +---+---+---+
     """
     if not d > 0:
-        return in_seq
+        return len(in_seq)
+    
+    if (''.join(in_seq), d) in memo:
+        return memo[(''.join(in_seq), d)]
+
     d_keypad_map = {v:k for k,v in d_keypad.items()}
     curr = key_pad_s
-    fin_seq = []
+    res = 0
     dest = ''
     for i in in_seq:
         dest = i
@@ -205,47 +214,46 @@ def enter_sequence(key_pad_s: str, in_seq: List[str], d_keypad: Dict[str, Tuple[
             v = [vert for _ in range(abs(d_keypad[curr][0]-d_keypad[dest][0]))]
             h = [horiz for _ in range(abs(d_keypad[curr][1]-d_keypad[dest][1]))]
 
-            # can I go horizontally?
-            f_s = []
+            # can I go horizontally first?
+            # f_s = []
+            f_s_l = 0
             if (d_keypad[curr][0], d_keypad[dest][1]) in d_keypad_map:
                 seq = []
                 seq.extend(h)
                 seq.extend(v)
                 seq.append('A')
-                f_s = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
+                f_s_l = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
             
-            # can I go vertically?
-            s_s = []
+            # can I go vertically first?
+            # s_s = []
+            s_s_l = 0
             if (d_keypad[dest][0], d_keypad[curr][1]) in d_keypad_map:
                 seq = []
                 seq.extend(v)
                 seq.extend(h)
                 seq.append('A')
-                s_s = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
+                s_s_l = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
             # traverse
             # compare both
-            if not f_s:
-                fin_seq.extend(s_s)
-            elif not s_s:
-                fin_seq.extend(f_s)
-            elif len(f_s) < len(s_s):
-                fin_seq.extend(f_s)
+            if not f_s_l:
+                res += s_s_l
+            elif not s_s_l:
+                res += f_s_l
+            elif f_s_l < s_s_l:
+                res += f_s_l
             else:
-                fin_seq.extend(s_s)
+                res += s_s_l
         else:
             seq = ['A']
-            n_seq = enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
-            fin_seq.extend(n_seq)
+            res += enter_sequence(key_pad_s='A', in_seq=seq, d_keypad=d_keypad, d=d-1)
         curr = dest
-    return fin_seq
+    
+    memo[(''.join(in_seq), d)] = res
+    return res
 
 def get_complexity(code: str, robot_n: int) -> int:
     n = int(re.findall(pattern='(\\d+)', string=code)[0])
-
-    return n*len(get_sequence(code=code, robot_n=robot_n))
-
-def get_complexity_sum(codes: List[str], robot_n: int) -> int:
-    return sum((get_complexity(code=code, robot_n=robot_n) for code in codes))
+    return n*get_sequence(code=code, robot_n=robot_n)
 
 def parse(p: Path) -> List[str]:
     with open(p, 'r', encoding='utf8') as f:
@@ -253,15 +261,11 @@ def parse(p: Path) -> List[str]:
 
 @timer_decorator
 def solve(p: Path, robot_n: int) -> int:
-    return get_complexity_sum(codes=parse(p=p), robot_n=robot_n)
+    return sum((get_complexity(code=code, robot_n=robot_n) for code in parse(p=p)))
 
 
 if __name__ == '__main__':
-    print(solve(p=in_f, robot_n=2))
-    print(solve(p=in_f, robot_n=3))
-    print(solve(p=in_f, robot_n=4))
-    print(solve(p=in_f, robot_n=5))
-    print(solve(p=in_f, robot_n=6))
     assert solve(p=t_f, robot_n=2) == 126384
     assert solve(p=in_f, robot_n=2) == 238078
+    assert solve(p=in_f, robot_n=25) == 293919502998014
     print("All passed!")
