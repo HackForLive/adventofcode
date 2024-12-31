@@ -1,81 +1,15 @@
 from __future__ import annotations
-from collections import deque
 from pathlib import Path
 import re
 import sys
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 
-from dataclasses import dataclass
-
-from aoc.model.direction import Direction, get_next_left_dir, get_next_right_dir
 from aoc.performance import timer_decorator
 
 curr_dir = Path(__file__).parent
 t_f = curr_dir / 'test.txt'
 in_f = curr_dir / 'in.txt'
 
-import numpy as np
-
-# @dataclass(frozen=True, init=True)
-# class Step:
-#     """
-#     Current step identified by
-#     position (x,y)
-#     current direction
-#     """
-#     x: int
-#     y: int
-#     price: int = -1
-
-#     def __hash__(self):
-#         return hash((self.x, self.y))
-
-#     def __eq__(self, other):
-#         return (
-#             self.__class__ == other.__class__ and
-#             self.x == other.x and
-#             self.y == other.y
-#         )
-    
-# def get_point_on_map(c: str, map: np.matrix) -> Tuple[int, int]:
-#     rows, cols = np.where(map == c)
-#     assert len(rows) == 1
-#     assert len(cols) == 1
-#     return int(rows[0]), int(cols[0])
-
-# def get_all_directions():
-#     return [Direction.EAST, Direction.NORTH, Direction.WEST, Direction.SOUTH]
-
-# def get_directions(d: Direction):
-#     return [d, get_next_right_dir(direction=d), get_next_left_dir(direction=d)]
-
-# def bfs(s_p: Step, e_p: Step, m: np.matrix) -> Tuple[int, Set[Step]]:
-#     q = deque()
-
-#     q.append(Step(x=s_p.x, y=s_p.y, price=0))
-#     visited = set()
-
-#     while q:
-#         curr: Step = q.popleft()
-
-#         if curr in visited:
-#             continue
-
-#         if curr == e_p:
-#             visited.add(curr)
-#             return curr.price, visited
-        
-#         for c_dir in get_all_directions():
-#             x = curr.x + c_dir.value[1]
-#             y = curr.y + c_dir.value[0]
-#             p = m[y, x]
-#             if p == '#':
-#                 continue
-#             next_step = Step(x=x, y=y, price=curr.price+1)
-#             q.append(next_step)
-
-#         visited.add(curr)
-#     return -1, set()
 
 def get_sequence(code: str, robot_n: int) -> int:
     """
