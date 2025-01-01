@@ -24,7 +24,7 @@ class Node:
         return hash(self.name)
 
 
-def parse(p: Path) -> Tuple[Set, Dict]:
+def parse(p: Path) -> Tuple[Set, Dict[str, List[str]]]:
     adj = {}
     vert = set()
     with open(p, 'r', encoding='utf8') as f:
@@ -44,73 +44,75 @@ def parse(p: Path) -> Tuple[Set, Dict]:
             vert.add(l)         
         return vert, adj
 
-@timer_decorator
-def solve(p: Path) -> int:
-    v, adj = parse(p=p)
-    
-    v=list(v)
-    res = set()
-    for i in range(len(v)):
-        for j in range(i+1, len(v)):
-            for k in range(j+1, len(v)):
-                if not (v[i].startswith('t') or v[j].startswith('t') or v[k].startswith('t')):
-                    continue
-                if v[i] in adj[v[k]] and v[j] in adj[v[k]] and v[j] in adj[v[i]]:
-                    res.add((v[i], v[j], v[k]))
-                
-    return len(res)
-
-def find_cycle(start: str, adj: Dict[str, str]) -> Tuple:
+def find_cycles(start: str, adj: Dict[str, List[str]]) -> List[List[str]]:
     
     visited = set()
 
     s_node = Node(name=start, parent=None)
     stack = deque([s_node])
 
+    cycles = []
     while stack:
         curr = stack.pop()
 
         if curr in visited:
             # get all node names
 
-            res = set([curr.name])
+            cycle = [curr.name]
             tmp = curr
             while tmp.parent:
-                # if tmp.parent.name in res:
-                #     break
-                res.add(tmp.parent.name)
+                if tmp.parent.name == curr.name:
+                    break
+                cycle.append(tmp.parent.name)
                 tmp = tmp.parent
             
-            return tuple(res)
+            cycles.append(sorted(cycle))
+            continue
+        
         visited.add(curr)
 
         for neighbor in adj[curr.name]:
             stack.append(Node(name=neighbor, parent=curr))
 
-    return ()
+    return cycles
 
 
-def is_complete_graph(v: Tuple, adj: Dict[str, str]):
-    for i in range(len(v)):
-        for j in range(i+1, len(v)):
-            if not v[i] in adj[v[j]]:
+def is_complete_graph(cycle: List[str], adj: Dict[str, List[str]]):
+    for i in range(len(cycle)):
+        for j in range(i+1, len(cycle)):
+            if (not cycle[i] in adj[cycle[j]]) or (not cycle[j] in adj[cycle[i]]):
                 return False
     return True
 
-
-def longest_cycle(v: Set[str], adj: Dict[str, str]) -> str:
     
-    # keep track of cycles
+def get_unique_cycles(v: Set[str], adj: Dict[str, List[str]]) -> List[List[str]]:
+     # keep track of cycles
     # tuple of nodes
-    cycles = set()
+    cycles = []
    
     # for each vertice
     # do BFS
     for n in v:
-        cycle = find_cycle(start=n, adj=adj)
-        print(cycle)
-        if is_complete_graph(v=cycle, adj=adj):
-            cycles.add(cycle)
+        n_cycles = find_cycles(start=n, adj=adj)
+        for cycle in n_cycles:
+            if is_complete_graph(cycle=cycle, adj=adj):
+                cycles.append(sorted(cycle))
+    return cycles
+
+def get_cycles_with_chief(cycles: List[List[str]], start_letter: str) -> List[Tuple]:
+    res = []
+    for cycle in cycles:
+        for n in cycle:
+            if n.startswith(start_letter):
+                res.append(cycle)
+                break
+    return res
+
+def longest_cycle(v: Set[str], adj: Dict[str, List[str]]) -> str:
+    
+    # keep track of cycles
+    # tuple of nodes
+    cycles = get_unique_cycles(v=v, adj=adj)
 
     max_l = 0
     max_nodes = ()
@@ -120,16 +122,68 @@ def longest_cycle(v: Set[str], adj: Dict[str, str]) -> str:
             max_nodes = c
 
     return ','.join(sorted(set(max_nodes)))
-    
 
+
+@timer_decorator
+def solve_2_alternative(p: Path) -> str:
+    v, adj = parse(p=p)
+    return longest_cycle(v=v, adj=adj)
+
+
+
+@timer_decorator
+def solve_1(p: Path, count: int) -> int:
+    v, adj = parse(p=p)
+
+    from itertools import combinations
+
+    res = {}
+    for k, v in adj.items():
+        for c in combinations(iterable=[k]+v, r=count):
+            i = tuple(sorted(c))
+            res[i] = res.get(i, 0) + 1
+    
+    r = []
+    for k, v in res.items():
+        is_chief = False
+        for j in k:
+            if j.startswith('t'):
+                is_chief = True
+                break
+        if is_chief and (v >= count):
+            if is_complete_graph(cycle=k, adj=adj):
+                r.append(k)
+    return len(r)
+
+@timer_decorator
 def solve_2(p: Path) -> str:
     v, adj = parse(p=p)
-    # print(adj)
-    return longest_cycle(v=v, adj=adj)
-   
+
+    for k, v in adj.items():
+        count = len(v)
+        break
+    from itertools import combinations
+
+    res = {}
+    for k, v in adj.items():
+        for c in combinations(iterable=[k]+v, r=count):
+            i = tuple(sorted(c))
+            res[i] = res.get(i, 0) + 1
+    for k, v in res.items():
+        if (v >= count) and is_complete_graph(cycle=k, adj=adj):
+            return ','.join(k)
+    
+    return ''
+
 
 if __name__ == '__main__':
-    assert solve(p=t_f) == 7
-    assert solve(p=in_f) == 1358
-    print(solve_2(p=in_f))
+
+    assert solve_1(p=t_f, count=3) == 7
+    assert solve_1(p=in_f, count=3) == 1358
+    assert solve_2(p=t_f) == 'co,de,ka,ta'
+    assert solve_2(p=in_f) == 'cl,ei,fd,hc,ib,kq,kv,ky,rv,vf,wk,yx,zf'
+
+    # very slow
+    # print(solve_2_alternative(p=in_f))
+
     print("All passed!")
