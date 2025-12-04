@@ -65,22 +65,22 @@ def solve_1(p: Path) -> int:
         matrix_with_offset = get_matrix_with_offset(matrix=matrix, val='#', offset=1)
         start_pos = (1,1)
         # print(matrix_with_offset)
-        res = get_rolls(s_pos = start_pos, matrix=matrix_with_offset)
-        return res
+        return get_rolls(s_pos = start_pos, matrix=matrix_with_offset)
     
 
-# @timer_decorator
-# def solve_2(p: Path) -> int:
-#     with open(p, encoding='utf-8', mode='r') as f:
-#         arr_2d = np.array([[c for c in line.strip()] for line in f.readlines()])
-#         matrix = np.asmatrix(arr_2d)
-#         matrix_with_offset = get_matrix_with_offset(matrix=matrix, val=-1, offset=1)
-#         start_pos = find_start(start=0, matrix=matrix_with_offset)
-#         return get_hiking_trail_all_score(s_pos = start_pos, matrix=matrix_with_offset)
+@timer_decorator
+def solve_2(p: Path) -> int:
+    with open(p, encoding='utf-8', mode='r') as f:
+        arr_2d = np.array([[c for c in line.strip()] for line in f.readlines()])
+        matrix = np.asmatrix(arr_2d)
+        matrix_with_offset = get_matrix_with_offset(matrix=matrix, val='#', offset=1)
+        start_pos = (1,1)
+        # print(matrix_with_offset)
+        return get_rolls(s_pos = start_pos, matrix=matrix_with_offset)
 
 if __name__ == '__main__':
     assert solve_1(p=t_f) == 13
     print(solve_1(p=in_f)) # 1457
-    assert solve_2(p=t_f)
+    assert solve_2(p=t_f) == 43 # can be removed
     # assert solve_2(p=in_f) == 1058
     print("All passed!")
