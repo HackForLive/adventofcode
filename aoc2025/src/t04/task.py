@@ -37,7 +37,7 @@ def get_rolls(s_pos: list[tuple[int, int]], matrix: np.ndarray) -> int:
             cc = 0
             for i in [-1,0,1]:
                 for j in [-1,0,1]:
-                    if (i + curr[0] == curr[0]) and (j + curr[1] == curr[1]):
+                    if (i == 0) and (j == 0):
                         continue
                     if matrix[i + curr[0], j + curr[1]] == '@':
                         cc = cc + 1
@@ -69,7 +69,7 @@ def total_removed_papers(s_pos: list[tuple[int, int]], matrix: np.ndarray) -> in
                 cc = 0
                 for i in [-1,0,1]:
                     for j in [-1,0,1]:
-                        if (i + curr[0] == curr[0]) and (j + curr[1] == curr[1]):
+                        if (i == 0) and (j == 0):
                             continue
                         if matrix[i + curr[0], j + curr[1]] == '@':
                             cc = cc + 1
