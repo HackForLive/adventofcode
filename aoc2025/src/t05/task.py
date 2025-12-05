@@ -26,9 +26,8 @@ def get_all_fresh_unions(ranges: list[tuple[int,int]]) -> int:
     for i in range(len(s)):
         if s[i] == curr:
             continue
-        if curr[1] > s[i][0]:
-            n = (curr[0], max(curr[1], s[i][1]))
-            curr = n
+        if curr[1] >= s[i][0]:
+            curr = (curr[0], max(curr[1], s[i][1]))
         else:
             res.append(curr)
             curr = s[i]
@@ -87,5 +86,5 @@ if __name__ == '__main__':
     print(solve_1(p=in_f)) # 520
     
     assert solve_2(p=t_f) == 14
-    print(solve_2(p=in_f)) # too high 347338785050532
+    print(solve_2(p=in_f)) # too high 347338785050515
     print("All passed!")
