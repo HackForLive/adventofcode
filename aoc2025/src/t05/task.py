@@ -1,3 +1,4 @@
+import functools
 from pathlib import Path
 
 from aoc.performance import timer_decorator
@@ -37,14 +38,8 @@ def get_fresh(ingred: list[int], ranges: list[tuple[int,int]]) -> int:
     return res
 
 def get_all_fresh_unions(ranges: list[tuple[int,int]]) -> int:
-    # union find
-    res = get_all_unions(ranges=ranges)
-    
-    c = 0
-    for i in res:
-        c += i[1]-i[0]+1
-    return c
-
+    return functools.reduce(
+        lambda a, b: a + b, [i[1]-i[0]+1 for i in get_all_unions(ranges=ranges)])
 
 @timer_decorator
 def solve_1(p: Path):
