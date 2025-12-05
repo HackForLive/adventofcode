@@ -6,17 +6,7 @@ curr_dir = Path(__file__).parent
 t_f = curr_dir / 'test.txt'
 in_f = curr_dir / 'in.txt'
 
-
-def get_fresh(ingred: list[int], ranges: list[tuple[int,int]]) -> int:
-    res = 0
-    for i in ingred:
-        for l, r in ranges:
-            if (i >= l) and (i <= r):
-                res += 1
-                break
-    return res
-
-def get_all_fresh_unions(ranges: list[tuple[int,int]]) -> int:
+def get_all_unions(ranges: list[tuple[int,int]]) -> list[tuple[int,int]]:
     # union find
     s = sorted(ranges, key=lambda k: k[0])
 
@@ -33,6 +23,22 @@ def get_all_fresh_unions(ranges: list[tuple[int,int]]) -> int:
             curr = s[i]
     if curr:
         res.append(curr)
+    
+    return res
+
+def get_fresh(ingred: list[int], ranges: list[tuple[int,int]]) -> int:
+    res = 0
+    unions = get_all_unions(ranges=ranges)
+    for i in ingred:
+        for l, r in unions:
+            if (i >= l) and (i <= r):
+                res += 1
+                break
+    return res
+
+def get_all_fresh_unions(ranges: list[tuple[int,int]]) -> int:
+    # union find
+    res = get_all_unions(ranges=ranges)
     
     c = 0
     for i in res:
@@ -86,5 +92,5 @@ if __name__ == '__main__':
     print(solve_1(p=in_f)) # 520
     
     assert solve_2(p=t_f) == 14
-    print(solve_2(p=in_f)) # too high 347338785050515
+    print(solve_2(p=in_f)) # 347338785050515
     print("All passed!")
