@@ -69,15 +69,10 @@ def count_all_paths(matrix: np.matrix, start: tuple[int, int]) -> int:
         streams = set(next_streams)
     return res
 
-def count_splits_tbfixed(splits: list[tuple[int,int]], start: tuple[int, int]) -> int:
+def count_splits_slow(splits: list[tuple[int,int]], start: tuple[int, int]) -> int:
     splits_y = sorted(splits, key=lambda x: (x[0], x[1]))
-
-    streams = set([start])
-
+    streams = [start]
     res = 0
-
-    print(f"{len(splits_y) =}")
-
 
     for spl in splits_y: # from top to bottom
 
@@ -96,8 +91,8 @@ def count_splits_tbfixed(splits: list[tuple[int,int]], start: tuple[int, int]) -
         
         if match_s and le and ri:
             streams.remove(match_s)
-            streams.add(le)
-            streams.add(ri)
+            streams.append(le)
+            streams.append(ri)
             # print(streams)
     return res
 
@@ -107,11 +102,20 @@ def solve_1(p: Path) -> int:
     with open(p, encoding='utf-8', mode='r') as f:
         arr_2d = np.array([[c for c in line.strip()] for line in f.readlines()])
         matrix = np.asmatrix(arr_2d)
-
         start = find_splits(start='S', matrix=matrix)
-        # splits = find_splits(start='^', matrix=matrix)
 
         return count_splits(matrix=matrix, start=start[0])
+
+@timer_decorator
+def solve_1_slow(p: Path) -> int:
+    with open(p, encoding='utf-8', mode='r') as f:
+        arr_2d = np.array([[c for c in line.strip()] for line in f.readlines()])
+        matrix = np.asmatrix(arr_2d)
+
+        start = find_splits(start='S', matrix=matrix)
+        splits = find_splits(start='^', matrix=matrix)
+
+        return count_splits_slow(splits=splits, start=start[0])
     
 @timer_decorator
 def solve_2(p: Path) -> int:
@@ -124,6 +128,8 @@ def solve_2(p: Path) -> int:
 if __name__ == '__main__':
     assert solve_1(p=t_f) == 21
     print(solve_1(p=in_f)) # 1553
+    assert solve_1_slow(p=t_f) == 21
+    print(solve_1_slow(p=in_f)) # 1553
     assert solve_2(p=t_f) == 40
     print(solve_2(p=in_f)) # 15811946526915
     print("All passed!")
