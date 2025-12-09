@@ -71,7 +71,8 @@ def count_all_paths(matrix: np.matrix, start: tuple[int, int]) -> int:
 
 def count_splits_slow(splits: list[tuple[int,int]], start: tuple[int, int]) -> int:
     splits_y = sorted(splits, key=lambda x: (x[0], x[1]))
-    streams = [start]
+    streams = {}
+    streams[start] = 1
     res = 0
 
     for spl in splits_y: # from top to bottom
