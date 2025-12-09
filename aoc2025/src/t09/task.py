@@ -26,8 +26,8 @@ def solve_2(p: Path):
     points = []
     with open(p, 'r', encoding='utf8') as f:
         for l in f:
-            x,y,z = [int(i) for i in l.strip().split(',')]
-            points.append(Point3D(x=x,y=y,z=z))
+            x,y = [int(i) for i in l.strip().split(',')]
+            points.append((x,y))
 
     return compute(pts=points)
 
