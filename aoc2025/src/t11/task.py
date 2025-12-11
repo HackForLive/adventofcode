@@ -79,7 +79,6 @@ def count_paths_with_cycle_handle(graph, start, target):
         visiting.add(u)
         total = 0
         for v in graph.get(u, []):
-            print(memo)
             total += dfs(v)
         visiting.remove(u)
 
