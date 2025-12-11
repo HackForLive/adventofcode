@@ -1,9 +1,9 @@
 from pathlib import Path
 import sys
-
-import numpy as np
+from collections import deque
 
 from aoc.performance import timer_decorator
+from solver import solve_min_items_unbounded
 
 curr_dir = Path(__file__).parent
 t_f = curr_dir / 'test.txt'
@@ -25,7 +25,6 @@ def apply_jolt(jolt: tuple, action: list[int], n: int):
     return tuple(tmp)
 
 def max_jolt(jolt: tuple, target_jolt: tuple, action: list[int]) -> int:
-   
     res = sys.maxsize
     for i in action:
         curr_res = target_jolt[i]-jolt[i]
@@ -34,94 +33,100 @@ def max_jolt(jolt: tuple, target_jolt: tuple, action: list[int]) -> int:
     
     return res
  
-memo = {}
-
-def recurse(target_state: str, state: str, actions: list[list[int]], i: int) -> int:
-    if i >= len(actions):
-        if state != target_state:
-            return sys.maxsize
-        return 0
-    
-    if state == target_state:
-        return 0
-    
-    action = actions[i]
-    new_state = apply_action(state=state, action=action)
-    # take action, apply action to curr_state
-    if (new_state, i) not in memo:
-        a = recurse(target_state=target_state, state=new_state, actions=actions, i=i+1) + 1
-        memo[(new_state, i+1)] = a
-    else:
-        a = memo[(new_state, i)]
-    # skip action
-    if (state, i) not in memo:
-        b = recurse(target_state=target_state, state=state, actions=actions, i=i+1)
-        memo[(state, i+1)] = b
-    else:
-        b = memo[(state, i)]
-
-    return min(a,b)
-
-
 def compute(states: list[str], actions: list[list[list[int]]]):
     res = 0
-    global memo
+
+    def recurse(target_state: str, state: str, i: int) -> int:
+        if i >= len(actions_i):
+            if state != target_state:
+                return sys.maxsize
+            return 0
+        
+        if state == target_state:
+            return 0
+        
+        action = actions_i[i]
+        new_state = apply_action(state=state, action=action)
+        # take action, apply action to curr_state
+        if (new_state, i) not in memo:
+            a = recurse(target_state=target_state, state=new_state, i=i+1) + 1
+            memo[(new_state, i+1)] = a
+        else:
+            a = memo[(new_state, i)]
+        # skip action
+        if (state, i) not in memo:
+            b = recurse(target_state=target_state, state=state, i=i+1)
+            memo[(state, i+1)] = b
+        else:
+            b = memo[(state, i)]
+
+        return min(a,b)
+
     for i, s in enumerate(states):
         memo = {}
-        action = actions[i]
+        actions_i = actions[i]
         state = s
-        res += recurse(target_state=state, state='0'*len(state), actions=action, i=0)
+        res += recurse(target_state=state, state='0'*len(state), i=0)
     return res
 
 
-def recurse_jolts(target_jolt: tuple, jolt: tuple, actions: list[list[int]], i: int) -> int:
-    if i >= len(actions):
-        if jolt != target_jolt:
-            return sys.maxsize
-        return 0
-    
-    if jolt == target_jolt:
-        return 0
-    if (jolt) + (i,) in memo:
-        # print('cache')
-        return memo[(jolt) + (i,)]
+def bfs(items: list[list[int]], target: tuple):
+    # items: list of tuples, e.g. [(1,5,6), (2,5,9)]
+    # target: tuple of target counts, e.g. (10,20,30,4,...)
 
-    action = actions[i]
-    
-    res = []
-    # apply as many times possible
+    n = len(target)
+    start = (0,) * n
 
-    n = max_jolt(jolt=jolt, target_jolt=target_jolt, action=action)
-    if n < 0:
-        return sys.maxsize
-    # print(n)
-    for k in reversed(range(0, n+1)):
-        # print(k)
-        if k > 0:
-            new_jolt = apply_jolt(jolt=jolt, action=action, n=k)
-        else:
-            new_jolt = jolt
+    queue = deque([start])
+    dist = {start: 0}
 
-        a = recurse_jolts(target_jolt=target_jolt, jolt=new_jolt, actions=actions, i=i+1) + k
-        res.append(a)
-        
-    rr = min(res)
-    memo[(jolt) + (i,)] = rr
-    return rr
+    while queue:
+        state: tuple = queue.popleft()
+        steps = dist[state]
 
+        if state == target:
+            return steps
+
+        for item in items:
+            # create next state
+            new_state = list(state)
+            for idx in item:
+                new_state[idx] += 1
+
+            new_state = tuple(new_state)
+
+            # prune states that go beyond target
+            if any(new_state[i] > target[i] for i in range(n)):
+                continue
+
+            # skip visited
+            if new_state in dist:
+                continue
+
+            dist[new_state] = steps + 1
+            queue.append(new_state)
+
+    return None  # no solution
+
+def verify(picks: list[int], jolts: list[tuple], actions: list[list[int]]):
+    curr = (0,)*len(jolts)
+
+    for i, pick in enumerate(picks):
+        curr = apply_jolt(jolt=curr, action=actions[i], n=pick)
+
+    return all(curr[i] == jolts[i] for i in range(len(jolts)))
 
 def compute_jolts(actions: list[list[list[int]]], jolts: list[tuple]):
     res = 0
-    global memo
     for j, jolt in enumerate(jolts):
-        # if j != 8:
-        #     continue
-        memo = {}
         action = actions[j]
-        tmp = recurse_jolts(target_jolt=jolt, jolt=tuple([0]*len(jolt)), actions=action, i=0)
-        print(tmp)
+
+        tmp, picks = solve_min_items_unbounded(items=action, target=jolt, debug=False, time_limit_s=40)
+        
+        assert verify(picks=picks, jolts=jolt, actions=action) and tmp and isinstance(picks, list)
         res += tmp
     return res
+
 
 @timer_decorator
 def solve_1(p: Path):
@@ -165,7 +170,6 @@ if __name__ == '__main__':
     assert solve_1(p=t_f) == 7
     print(solve_1(p=in_f)) # 558
 
-    # 10 + 12 + 11 = 33
     assert solve_2(p=t_f) == 33
-    print(solve_2(p=in_f)) # 7858808482092
+    print(solve_2(p=in_f)) # => too low 20317
     print("All passed!")
