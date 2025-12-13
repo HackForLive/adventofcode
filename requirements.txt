@@ -7,3 +7,4 @@ pydantic
 setuptools
 attrs
 ortools
+pulp
