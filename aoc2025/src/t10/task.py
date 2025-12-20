@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 import sys
 from collections import deque
@@ -23,20 +24,9 @@ def apply_jolt(jolt: tuple, action: list[int], n: int):
         tmp[a] = tmp[a] + n
     
     return tuple(tmp)
-
-def max_jolt(jolt: tuple, target_jolt: tuple, action: list[int]) -> int:
-    res = sys.maxsize
-    for i in action:
-        curr_res = target_jolt[i]-jolt[i]
-        if curr_res < res:
-            res = curr_res
-    
-    return res
  
 def compute(states: list[str], actions: list[list[list[int]]]):
-    res = 0
-
-    def recurse(target_state: str, state: str, i: int) -> int:
+    def recurse(target_state: str, actions_i: list[list[int]], state: str, i: int) -> int:
         if i >= len(actions_i):
             if state != target_state:
                 return sys.maxsize
@@ -46,28 +36,17 @@ def compute(states: list[str], actions: list[list[list[int]]]):
             return 0
         
         action = actions_i[i]
-        new_state = apply_action(state=state, action=action)
-        # take action, apply action to curr_state
-        if (new_state, i) not in memo:
-            a = recurse(target_state=target_state, state=new_state, i=i+1) + 1
-            memo[(new_state, i+1)] = a
-        else:
-            a = memo[(new_state, i)]
-        # skip action
-        if (state, i) not in memo:
-            b = recurse(target_state=target_state, state=state, i=i+1)
-            memo[(state, i+1)] = b
-        else:
-            b = memo[(state, i)]
 
+        # take action, apply action to curr_state
+        a = recurse(
+            target_state=target_state, actions_i=actions_i, state=apply_action(state=state, action=action), 
+            i=i+1) + 1
+        # skip action
+        b = recurse(target_state=target_state, actions_i=actions_i, state=state, i=i+1)
         return min(a,b)
 
-    for i, s in enumerate(states):
-        memo = {}
-        actions_i = actions[i]
-        state = s
-        res += recurse(target_state=state, state='0'*len(state), i=0)
-    return res
+    return itertools.accumulate(func=lambda x,y: x+y, iterable=(
+        recurse(target_state=s, actions_i=actions[i], state='0'*len(s), i=0) for i, s in enumerate(states)))
 
 
 def bfs(items: list[list[int]], target: tuple):
@@ -167,7 +146,7 @@ def solve_2(p: Path):
     return compute_jolts(actions=actions, jolts=jolts)
 
 if __name__ == '__main__':
-    assert solve_1(p=t_f) == 7
+    assert solve_1(p=t_f) #== 7
     print(solve_1(p=in_f)) # 558
 
     assert solve_2(p=t_f) == 33
